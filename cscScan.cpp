@@ -45,15 +45,16 @@ Scanner::Scanner()
 void Scanner::BufferChar(char c)
 {
 	if (tokenBuffer.length() < ID_STRING_LEN)
-		tokenBuffer += toupper(c);
+		//tokenBuffer += toupper(c);
+		tokenBuffer += c;
 }
 
 Token Scanner::CheckReserved()
 {
 	if (tokenBuffer == ":A") return BEGIN_SYM;
 	if (tokenBuffer == ":Z") return END_SYM;
-	if (tokenBuffer == ":I") return READ_SYM;
-	if (tokenBuffer == ":O") return WRITE_SYM;
+	if (tokenBuffer == ":I") return INPUT_SYM;
+	if (tokenBuffer == ":O") return OUTPUT_SYM;
 	if (tokenBuffer == ":B") return BREAK_SYM;
 	if (tokenBuffer == ":D") return DO_SYM;
 	if (tokenBuffer == ":F") return FOR_SYM;
@@ -63,13 +64,14 @@ Token Scanner::CheckReserved()
 	if (tokenBuffer == ":!") return ELSE_SYM;
 	if (tokenBuffer == ":.") return ENDSTMT_SYM;
 	if (tokenBuffer == ":=") return ASSIGN_OP;
+	if (tokenBuffer == ":") return COLON;
 	if (tokenBuffer == ":N") return NEWLINE_SYM;
 	if (tokenBuffer == "int") return INT_SYM;
     if(tokenBuffer =="float") return FLOAT_SYM;
     if(tokenBuffer =="floatarray") return FLOATARRAY_SYM;
     if(tokenBuffer =="intarray") return INTARRAY_SYM;
     if(tokenBuffer =="scribble") return SCRIBBLE_SYM;
-
+	
 
 	return ID;
 }
@@ -132,6 +134,13 @@ Token Scanner::GetNextToken()
 			}
 			return CheckReserved();
 		}
+		else if (currentChar == ':')
+		{
+			BufferChar(currentChar);
+			currentChar = NextChar();
+			BufferChar(currentChar);
+			return CheckReserved();
+		}
 		else if (isdigit(currentChar))
 		{                                // integer literal
 			BufferChar(currentChar);
@@ -142,12 +151,17 @@ Token Scanner::GetNextToken()
 				BufferChar(currentChar);
 				c = sourceFile.peek();
 			}
-			return INT_LITERAL;
+			cout << "INT FOUND " << endl;
+			return INT_LIT;
 		}
+		else if (currentChar == '[')
+			return LSTAPLE;
+		else if (currentChar == ']')
+			return RSTAPLE;
 		else if (currentChar == '(')
-			return LPAREN;
+			return LBANANA;
 		else if (currentChar == ')')
-			return RPAREN;
+			return RBANANA;
 		else if (currentChar == ';')
 			return SEMICOLON;
 		else if (currentChar == ',')
@@ -157,6 +171,9 @@ Token Scanner::GetNextToken()
 			BufferChar(currentChar);
 			return PLUS_OP;
 		}
+		
+		//Now takes place in CheckReserved
+		/*
 		else if (currentChar == ':')
 			if (sourceFile.peek() == '=')
 			{                             // := operator
@@ -164,16 +181,72 @@ Token Scanner::GetNextToken()
 				return ASSIGN_OP;
 			}
 			else
-				LexicalError(currentChar);
+			{
+				currentChar = NextChar();
+				return COLON;
+			}
+		*/
+		
+		else if (currentChar == '/')  
+			if (sourceFile.peek() == '/') // // Integer division
+			{
+				currentChar = NextChar();
+				return INTEGERDIV_OP;
+			}
+			else { //Real division
+				BufferChar(currentChar);
+				return REALDIV_OP;
+			}
 		else if (currentChar == '-')  
-			if (sourceFile.peek() == '-') // comment
-				do  // skip comment
-					currentChar = NextChar();
-				while (currentChar != '\n');
-		else
 		{
 			BufferChar(currentChar);      // minus operator
 			return MINUS_OP;
+		}
+		else if (currentChar == '=') // == EQ_OP
+		{
+			if(sourceFile.peek() == '=')
+			{
+				currentChar = NextChar();
+				return EQ_OP;
+			}
+		}
+		else if (currentChar == '>')  
+			if (sourceFile.peek() == '=') // >= GE_OP
+			{
+				currentChar = NextChar();
+				return GE_OP;
+			}
+			else { // > GT_OP
+				BufferChar(currentChar);
+				return GT_OP;
+			}
+		else if (currentChar == '<')  
+			if (sourceFile.peek() == '=') // >= LE_OP
+			{
+				currentChar = NextChar();
+				return LE_OP;
+			}
+			else { // < LT_OP
+				BufferChar(currentChar);
+				return LT_OP;
+			}
+		else if (currentChar == '!') 
+		{
+			if(sourceFile.peek() == '=') // != NE_OP
+			{
+				currentChar = NextChar();
+				return NE_OP;
+			}
+		}
+		else if (currentChar == '*') // * MULT_OP
+		{
+			BufferChar(currentChar);
+			return MULT_OP;
+		}
+		else if (currentChar == ',') // , COMMA
+		{
+			BufferChar(currentChar);
+			return COMMA;
 		}
 		else
 			LexicalError(currentChar);

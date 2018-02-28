@@ -5,15 +5,15 @@
 							          micro.cpp
 
                                     Version 2007
-									
+
 								  James L. Richards
 						    Last Update: August 28,  2007
-									
-						  -- Generates SAM Assembly Code --
- 
 
-	Micro is a simple language defined by Charles N. Fischer and Richard J. 
-	LeBlanc, Jr. in their textbook entitled "Crafting A Compiler," Chapter 2, 
+						  -- Generates SAM Assembly Code --
+
+
+	Micro is a simple language defined by Charles N. Fischer and Richard J.
+	LeBlanc, Jr. in their textbook entitled "Crafting A Compiler," Chapter 2,
 	pp. 25-50 (1991).
 	____________________________________________________________________________
  */
@@ -29,14 +29,14 @@ ifstream sourceFile; // source program
 ofstream outFile,    // object program
          listFile;   // compiler listing
 
-#include "cscScan.h"   // scanner component definition 
-#include "cscParse.h"	 // parser component definition
-#include "cscCode.h"   // code generator component definition
+#include "cscScan.h"   // scanner component definition
+//#include "cscParse.h"	 // parser component definition
+//#include "cscCode.h"   // code generator component definition
 
                      // GLOBAL COMPONENT OBJECTS
 Scanner scan;        // scanner
-Parser parse;        // parser
-CodeGen code;        // code generator
+//Parser parse;        // parser
+//CodeGen code;        // code generator
 
 string Date();
 // Returns the current date.
@@ -48,23 +48,23 @@ int main(int argc, char* argv[])
 {
 	string sourceName, outName, listName;
 
-	cout 
-		<< "\n" 
+	cout
+		<< "\n"
 		<< " M I C R O   C O M P I L E R   2 0 0 7\n"
-		<< " _____________________________________\n" 
+		<< " _____________________________________\n"
 		<< endl;
         if (argc == 2){
           sourceName = argv[1];
         }
         else {
-	  cout << " Source file (.mic extension is assumed): ";
+	  cout << " Source file (.sy extension is assumed): ";
 	  getline(cin, sourceName);
 	}
 
    // Add appropriate extensions to file names.
 	outName = sourceName + ".asm";
 	listName = sourceName + ".lst";
-	sourceName += ".mic";
+	sourceName += ".sy";
 
    // Open and initialize all files.
 	sourceFile.open(sourceName.data());
@@ -79,8 +79,6 @@ int main(int argc, char* argv[])
 
 	listFile
 		<< "\n\n M I C R O   C O M P I L E R   L I S T I N G\n\n"
-		<< "             James L. Richards\n"
-		<< "               Version 2007\n\n"
 		<< " Generated code is SAM assembly language for\n"
 		<< " the MACC2 virtual computer.\n"
 		<< " ___________________________________________\n\n";
@@ -88,12 +86,20 @@ int main(int argc, char* argv[])
 	listFile << " Source file: " << sourceName << endl << endl;
 	listFile << " LINE #" << endl;
 
-	parse.SystemGoal();
+	//parse.SystemGoal();
 
+	Token scanToken = scan.GetNextToken();
+	cout << "Test" << endl;
+	while(scanToken != EOF_SYM){
+		//cout << scanToken << endl;
+		cout << scan.tokenBuffer << " " << scanToken << endl;
+
+		scanToken = scan.GetNextToken();
+	}
 	cout << endl
 		<< "\n Successful Compilation\n"
 		<< "\n Object code --> " << outName << endl
-		<< "\n Listing file --> " << listName << endl << endl; 
+		<< "\n Listing file --> " << listName << endl << endl;
 
 //	cin.get();
 	return 0;
@@ -116,7 +122,6 @@ string Time()
 
 
 	strftime (the_time, 10, "%I:%M %p", localtime (&current_time));
-	
+
 	return the_time;
 }
-
