@@ -1,7 +1,11 @@
 :A
-::The decleration of all the variables
+:/ This is a
+   mult:i-line
+   co/mment. /:
+
+:: The decleration of all the variables
   int : x,j,i;
-  intarray : arry[10];S
+  intarray : arry[10];
 
 :: This reads in integers to be added to the array of list
   :F(j:=0;j<10;j:=j+1)

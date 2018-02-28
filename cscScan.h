@@ -1,19 +1,6 @@
 /*	____________________________________________________________________________
 
-	                 Scanner Component for the Micro Compiler
-
-	                                mscan.h
-
-	                              Version 2007
- 
-	                           James L. Richards
-	                     Last Update: August 28, 2007
-
-	The routines in this unit are based on those provided in the book 
-	"Crafting A Compiler" by Charles N. Fischer and Richard J. LeBlanc, Jr., 
-	Benjamin Cummings Publishing Co. (1991).
-
-	See Section 2.2, pp. 25-29.
+	                 Scanner Component for the :Scopy Compiler
 	____________________________________________________________________________
 */
 
@@ -25,7 +12,7 @@ const int ID_STRING_LEN = 32;
 
 enum Token  { EOF_SYM, BEGIN_SYM, BREAK_SYM, DO_SYM, FOR_SYM, FLOAT_SYM, FLOATARRAY_SYM,
  INPUT_SYM, INT_SYM, INTARRAY_SYM, NEWLINE_SYM, OUTPUT_SYM, SCRIBBLE_SYM, UNTIL_SYM, WHILE_SYM,
-  END_SYM, IF_SYM, ELSE_SYM, ENDSTMT_SYM, LSTAPLE, RSTAPLE, LBANANA,  RBANANA, COLON, SEMICOLON, 
+  END_SYM, IF_SYM, ELSE_SYM, ENDSTMT_SYM, LSTAPLE, RSTAPLE, LBANANA,  RBANANA, COLON, SEMICOLON,
   COMMA, ASSIGN_OP, PLUS_OP,  MINUS_OP, MULT_OP, REALDIV_OP, INTEGERDIV_OP, LT_OP, LE_OP, GT_OP, GE_OP,
    EQ_OP, NE_OP, ID, INT_LIT, FLOAT_LIT, SCRIBBLE_LIT };
 
@@ -57,7 +44,7 @@ private:
    // Erases the contents of the tokenBuffer.
 
    void LexicalError(char& c);
-   // Processes a lexical error at character c by ignoring that character and 
+   // Processes a lexical error at character c by ignoring that character and
    // getting the next character.
 
    char NextChar();

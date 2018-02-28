@@ -1,19 +1,6 @@
 /*	____________________________________________________________________________
 
-	         Scanner Component Implementation for the Micro Compiler
-
-	                               mscan.cpp
-
-	                              Version 2007
- 
-	                           James L. Richards
-	                     Last Update: August 28, 2007
-
-	The routines in this unit are based on those provided in the book 
-	"Crafting A Compiler" by Charles N. Fischer and Richard J. LeBlanc, Jr., 
-	Benjamin Cummings Publishing Co. (1991).
-
-	See Section 2.2, pp. 25-29.
+	         Scanner Component Implementation for the :Scopy Compiler
 	____________________________________________________________________________
 */
 
@@ -45,7 +32,6 @@ Scanner::Scanner()
 void Scanner::BufferChar(char c)
 {
 	if (tokenBuffer.length() < ID_STRING_LEN)
-		//tokenBuffer += toupper(c);
 		tokenBuffer += c;
 }
 
@@ -67,11 +53,10 @@ Token Scanner::CheckReserved()
 	if (tokenBuffer == ":") return COLON;
 	if (tokenBuffer == ":N") return NEWLINE_SYM;
 	if (tokenBuffer == "int") return INT_SYM;
-    if(tokenBuffer =="float") return FLOAT_SYM;
-    if(tokenBuffer =="floatarray") return FLOATARRAY_SYM;
-    if(tokenBuffer =="intarray") return INTARRAY_SYM;
-    if(tokenBuffer =="scribble") return SCRIBBLE_SYM;
-	
+  if (tokenBuffer =="float") return FLOAT_SYM;
+  if (tokenBuffer =="floatarray") return FLOATARRAY_SYM;
+  if (tokenBuffer =="intarray") return INTARRAY_SYM;
+  if (tokenBuffer =="scribble") return SCRIBBLE_SYM;
 
 	return ID;
 }
@@ -137,9 +122,31 @@ Token Scanner::GetNextToken()
 		else if (currentChar == ':')
 		{
 			BufferChar(currentChar);
-			currentChar = NextChar();
-			BufferChar(currentChar);
-			return CheckReserved();
+			c = sourceFile.peek();
+			if (c == ':'){
+				while(c != '\n'){
+					currentChar = NextChar();
+					c = sourceFile.peek();
+				}
+				ClearBuffer();
+				currentChar = NextChar();
+			}else if(c == '/'){
+				while(true){
+					currentChar = NextChar();
+					c = sourceFile.peek();
+					if(currentChar == '/' && c == ':')
+						break;
+				}
+				currentChar = NextChar();
+				ClearBuffer();
+				currentChar = NextChar();
+			}else if(isspace(c)){
+					return CheckReserved();
+			}else{
+				currentChar = NextChar();
+				BufferChar(currentChar);
+				return CheckReserved();
+			}
 		}
 		else if (isdigit(currentChar))
 		{                                // integer literal
@@ -151,7 +158,6 @@ Token Scanner::GetNextToken()
 				BufferChar(currentChar);
 				c = sourceFile.peek();
 			}
-			cout << "INT FOUND " << endl;
 			return INT_LIT;
 		}
 		else if (currentChar == '[')
@@ -171,23 +177,7 @@ Token Scanner::GetNextToken()
 			BufferChar(currentChar);
 			return PLUS_OP;
 		}
-		
-		//Now takes place in CheckReserved
-		/*
-		else if (currentChar == ':')
-			if (sourceFile.peek() == '=')
-			{                             // := operator
-				currentChar = NextChar();
-				return ASSIGN_OP;
-			}
-			else
-			{
-				currentChar = NextChar();
-				return COLON;
-			}
-		*/
-		
-		else if (currentChar == '/')  
+		else if (currentChar == '/')
 			if (sourceFile.peek() == '/') // // Integer division
 			{
 				currentChar = NextChar();
@@ -197,7 +187,7 @@ Token Scanner::GetNextToken()
 				BufferChar(currentChar);
 				return REALDIV_OP;
 			}
-		else if (currentChar == '-')  
+		else if (currentChar == '-')
 		{
 			BufferChar(currentChar);      // minus operator
 			return MINUS_OP;
@@ -210,7 +200,7 @@ Token Scanner::GetNextToken()
 				return EQ_OP;
 			}
 		}
-		else if (currentChar == '>')  
+		else if (currentChar == '>')
 			if (sourceFile.peek() == '=') // >= GE_OP
 			{
 				currentChar = NextChar();
@@ -220,7 +210,7 @@ Token Scanner::GetNextToken()
 				BufferChar(currentChar);
 				return GT_OP;
 			}
-		else if (currentChar == '<')  
+		else if (currentChar == '<')
 			if (sourceFile.peek() == '=') // >= LE_OP
 			{
 				currentChar = NextChar();
@@ -230,7 +220,7 @@ Token Scanner::GetNextToken()
 				BufferChar(currentChar);
 				return LT_OP;
 			}
-		else if (currentChar == '!') 
+		else if (currentChar == '!')
 		{
 			if(sourceFile.peek() == '=') // != NE_OP
 			{
