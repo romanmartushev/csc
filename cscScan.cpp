@@ -142,17 +142,17 @@ Token Scanner::GetNextToken()
 			else
 			{
 
-				Token tempToken;
-
 				BufferChar(currentChar);
 				currentChar = NextChar();
-				BufferChar(currentChar);
-				tempToken = CheckReserved();
 
-				if(tempToken == ID)
-					tempToken = COLON;
+				if(isspace(currentChar))
+					return COLON;
 
-				return tempToken;
+				else
+				{
+					BufferChar(currentChar);
+					return CheckReserved();
+				}
 			}
 		}
 		else if (isdigit(currentChar))
