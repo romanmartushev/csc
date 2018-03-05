@@ -18,4 +18,6 @@
     x := x + arry[i];
   :.
 
+:O "The sum is: ", x;
+
 :Z

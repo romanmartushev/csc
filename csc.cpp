@@ -73,9 +73,9 @@ int main(int argc, char* argv[])
 	listFile << " Source file: " << sourceName << endl << endl;
 	listFile << " LINE #" << endl;
 
-	parse.SystemGoal();
-
-	Token scanToken = scan.GetNextToken();
+  parse.SystemGoal();
+  
+  Token scanToken = scan.GetNextToken();
 	cout << "Test" << endl;
 	while(scanToken != EOF_SYM){
     string token;
