@@ -17,12 +17,12 @@ ofstream outFile,    // object program
          listFile;   // compiler listing
 
 #include "cscScan.h"   // scanner component definition
-//#include "cscParse.h"	 // parser component definition
+#include "cscParse.h"	 // parser component definition
 //#include "cscCode.h"   // code generator component definition
 
                      // GLOBAL COMPONENT OBJECTS
 Scanner scan;        // scanner
-//Parser parse;        // parser
+Parser parse;        // parser
 //CodeGen code;        // code generator
 
 string Date();
@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
 	listFile << " Source file: " << sourceName << endl << endl;
 	listFile << " LINE #" << endl;
 
-	//parse.SystemGoal();
+	parse.SystemGoal();
 
 	Token scanToken = scan.GetNextToken();
 	cout << "Test" << endl;

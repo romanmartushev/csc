@@ -10,6 +10,8 @@ using namespace std;
 
 #include "cscParse.h"
 
+extern Scanner scan;
+
 Parser::Parser()
 {
 	tokenAvailable = false;
