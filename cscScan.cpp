@@ -50,13 +50,13 @@ Token Scanner::CheckReserved()
 	if (tokenBuffer == ":!") return ELSE_SYM;
 	if (tokenBuffer == ":.") return ENDSTMT_SYM;
 	if (tokenBuffer == ":=") return ASSIGN_OP;
-	if (tokenBuffer == ":") return COLON;
 	if (tokenBuffer == ":N") return NEWLINE_SYM;
 	if (tokenBuffer == "int") return INT_SYM;
   if (tokenBuffer =="float") return FLOAT_SYM;
   if (tokenBuffer =="floatarray") return FLOATARRAY_SYM;
   if (tokenBuffer =="intarray") return INTARRAY_SYM;
   if (tokenBuffer =="scribble") return SCRIBBLE_SYM;
+
 
 	return ID;
 }
@@ -105,8 +105,17 @@ Token Scanner::GetNextToken()
 	currentChar = NextChar();
 	while (!sourceFile.eof())
 	{
-		if (isspace(currentChar))
-			currentChar = NextChar();     // do nothing
+		if (isspace(currentChar) || multilineComment)
+		{
+			if (currentChar == '/' && sourceFile.peek() == ':')  // multi line comment end
+			{
+				multilineComment = false;
+				currentChar = NextChar();
+			}
+
+				currentChar = NextChar();     // do nothing
+		}
+
 		else if (isalpha(currentChar))
 		{                                // identifier
 			BufferChar(currentChar);
@@ -121,31 +130,29 @@ Token Scanner::GetNextToken()
 		}
 		else if (currentChar == ':')
 		{
-			BufferChar(currentChar);
-			c = sourceFile.peek();
-			if (c == ':'){
-				while(c != '\n'){
+			if (sourceFile.peek() == ':') // single line comment
+				do  // skip comment
 					currentChar = NextChar();
-					c = sourceFile.peek();
-				}
-				ClearBuffer();
-				currentChar = NextChar();
-			}else if(c == '/'){
-				while(true){
-					currentChar = NextChar();
-					c = sourceFile.peek();
-					if(currentChar == '/' && c == ':')
-						break;
-				}
-				currentChar = NextChar();
-				ClearBuffer();
-				currentChar = NextChar();
-			}else if(isspace(c)){
-					return CheckReserved();
-			}else{
+				while (currentChar != '\n');
+			else if (sourceFile.peek() == '/') // multi line comment start
+			{
+					multilineComment = true;
+			}
+
+			else
+			{
+
+				Token tempToken;
+
+				BufferChar(currentChar);
 				currentChar = NextChar();
 				BufferChar(currentChar);
-				return CheckReserved();
+				tempToken = CheckReserved();
+
+				if(tempToken == ID)
+					tempToken = COLON;
+
+				return tempToken;
 			}
 		}
 		else if (isdigit(currentChar))
@@ -177,8 +184,14 @@ Token Scanner::GetNextToken()
 			BufferChar(currentChar);
 			return PLUS_OP;
 		}
+
 		else if (currentChar == '/')
-			if (sourceFile.peek() == '/') // // Integer division
+			if (sourceFile.peek() == ':') // End multiline comment
+			{
+				cout << "Ending comment" << endl;
+				multilineComment = false;
+			}
+			else if (sourceFile.peek() == '/') // // Integer division
 			{
 				currentChar = NextChar();
 				return INTEGERDIV_OP;
@@ -237,6 +250,39 @@ Token Scanner::GetNextToken()
 		{
 			BufferChar(currentChar);
 			return COMMA;
+		}
+		else if (currentChar == '"'){
+										// String literal. Handles colons and double quotes
+			while(true){
+				currentChar = NextChar();
+				c = sourceFile.peek();
+
+				if(currentChar != '"')
+				{
+					if(currentChar == ':')
+					{
+						BufferChar(':');
+					}
+
+					BufferChar(currentChar);
+
+				}
+				else
+				{
+					if(c == '"')
+					{
+						NextChar();
+						BufferChar(':');
+						BufferChar('"');
+					}
+					else
+					{
+						break;
+					}
+				}
+			}
+			BufferChar(char(0));
+			return SCRIBBLE_LIT;
 		}
 		else
 			LexicalError(currentChar);

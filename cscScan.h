@@ -31,6 +31,7 @@ public:
 	// Retrieves the next token available in the input stream.
 
 private:
+   bool multilineComment = false; //Tracks whether or not the scanner is currently looking through a multiline comment
 
    void BufferChar(char c);
    // Appends character c to the end of the token buffer provided that the
