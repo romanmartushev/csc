@@ -52,9 +52,9 @@ private:
    // Gets next available character from the source file.
 
    void DigitWhileLoop(char& currentChar, char& c);
-   //Loop through digits until something else is encountered
+   // Loop through digits until something else is encountered
 
    Token CheckScientificNotation(char& currentChar, char& c);
-   //Process and loop through scientific notation numbers
+   // Process and loop through scientific notation numbers
 };
 #endif

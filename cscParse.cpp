@@ -638,7 +638,7 @@ void Parser::BreakStmt()
 void Parser::NewlineStmt()
 {
 	Match(NEWLINE_SYM);
-	// code.NewLine();
+	code.NewLine();
 	Match(SEMICOLON);
 }
 

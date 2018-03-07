@@ -54,8 +54,8 @@ public:
 	void NewLine();
 	// Produces the assembly code for starting a new output line.
 
-	void ProcessId(ExprRec& e);
-	// Declares the identifier in the token buffer and builds a
+	void ProcessVar(ExprRec& e);
+	// Declares the variable in the token buffer and builds a
 	// corresponding semantic record e.
 
 	void ProcessLit(ExprRec& e);
@@ -66,7 +66,7 @@ public:
 	// Produces an operator descriptor O for the operator in the token
 	// buffer.
 
-	void ReadId(const ExprRec & InVar);
+	void InputVar(const ExprRec & InVar);
 	// Produces the assembly code for reading a value for InVar.
 
 	void Start();
@@ -74,6 +74,54 @@ public:
 
 	void WriteExpr(const ExprRec & OutExpr);
 	// Produces the assembly code for writing the value of OutExpr.
+
+	void DefineVar();
+	// definition here
+
+	void InitializeVar();
+	// definition here
+
+	void FloatAppend();
+	// definition here
+
+	void IntAppend();
+	// definition here
+
+	void ForAssign();
+	// definition here
+
+	void ForUpdate();
+	// definition here
+
+	void ForEnd();
+	// definition here
+
+	void SetCondition();
+	// definition here
+
+	void DoLoopBegin();
+	// definition here
+
+	void DoLoopEnd();
+	// definition here
+
+	void WhileBegin();
+	// definition here
+
+	void WhileEnd();
+	// definition here
+
+	void ProcessIf();
+	// definition here
+
+	void ProcessElse();
+	// definition here
+
+	void IfEnd();
+	// definition here
+
+	void Break();
+	// definition here
 
 /* _____________________________________________________________________________
 */

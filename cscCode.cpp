@@ -211,7 +211,7 @@ void CodeGen::NewLine()
 	Generate("WRNL      ", "", "");
 }
 
-void CodeGen::ProcessId(ExprRec& e)
+void CodeGen::ProcessVar(ExprRec& e)
 {
 	CheckId(scan.tokenBuffer);
 	e.kind = ID_EXPR;
@@ -232,7 +232,7 @@ void CodeGen::ProcessOp(OpRec& o)
 		o.op = MINUS;
 }
 
-void CodeGen::ReadId(const ExprRec & inVar)
+void CodeGen::InputVar(const ExprRec & inVar)
 {
 	string s;
 
@@ -251,4 +251,69 @@ void CodeGen::WriteExpr(const ExprRec & outExpr)
 
 	ExtractExpr(outExpr, s);
 	Generate("WRI       ", s, "");
+}
+
+void CodeGen::DefineVar()
+{
+	//Code here
+}
+void CodeGen::InitializeVar()
+{
+	//Code here
+}
+void CodeGen::FloatAppend()
+{
+	//Code here
+}
+void CodeGen::IntAppend()
+{
+	//Code here
+}
+void CodeGen::ForAssign()
+{
+	//Code here
+}
+void CodeGen::ForUpdate()
+{
+	//Code here
+}
+void CodeGen::ForEnd()
+{
+	//Code here
+}
+void CodeGen::SetCondition()
+{
+	//Code here
+}
+void CodeGen::DoLoopBegin()
+{
+	//Code here
+}
+void CodeGen::DoLoopEnd()
+{
+	//Code here
+}
+void CodeGen::WhileBegin()
+{
+	//Code here
+}
+void CodeGen::WhileEnd()
+{
+	//Code here
+}
+void CodeGen::ProcessIf()
+{
+	//Code here
+}
+void CodeGen::ProcessElse()
+{
+	//Code here
+}
+void CodeGen::IfEnd()
+{
+	//Code here
+}
+void CodeGen::Break()
+{
+	//Code here
 }

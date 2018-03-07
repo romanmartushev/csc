@@ -57,7 +57,6 @@ Token Scanner::CheckReserved()
 	if (tokenBuffer =="intarray") return INTARRAY_SYM;
 	if (tokenBuffer =="scribble") return SCRIBBLE_SYM;
 
-
 	return ID;
 }
 
