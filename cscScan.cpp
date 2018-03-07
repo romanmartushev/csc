@@ -52,10 +52,10 @@ Token Scanner::CheckReserved()
 	if (tokenBuffer == ":=") return ASSIGN_OP;
 	if (tokenBuffer == ":N") return NEWLINE_SYM;
 	if (tokenBuffer == "int") return INT_SYM;
-  if (tokenBuffer =="float") return FLOAT_SYM;
-  if (tokenBuffer =="floatarray") return FLOATARRAY_SYM;
-  if (tokenBuffer =="intarray") return INTARRAY_SYM;
-  if (tokenBuffer =="scribble") return SCRIBBLE_SYM;
+	if (tokenBuffer =="float") return FLOAT_SYM;
+	if (tokenBuffer =="floatarray") return FLOATARRAY_SYM;
+	if (tokenBuffer =="intarray") return INTARRAY_SYM;
+	if (tokenBuffer =="scribble") return SCRIBBLE_SYM;
 
 
 	return ID;
@@ -159,12 +159,26 @@ Token Scanner::GetNextToken()
 		{                                // integer literal
 			BufferChar(currentChar);
 			c = sourceFile.peek();
-			while (isdigit(c))
+
+			DigitWhileLoop(currentChar, c);
+
+			if(c == 'e' || c == 'E')
+				return CheckScientificNotation(currentChar, c);
+
+			if(c == '.')
 			{
 				currentChar = NextChar();
 				BufferChar(currentChar);
 				c = sourceFile.peek();
+
+				DigitWhileLoop(currentChar, c);
+
+				if(c == 'e' || c == 'E')
+					return CheckScientificNotation(currentChar, c);
+
+				return FLOAT_LIT;
 			}
+
 			return INT_LIT;
 		}
 		else if (currentChar == '[')
@@ -288,4 +302,35 @@ Token Scanner::GetNextToken()
 			LexicalError(currentChar);
 	} // end while
 	return EOF_SYM;
+}
+
+void Scanner::DigitWhileLoop(char& currentChar, char& c)
+{
+	while(isdigit(c))
+		{
+			currentChar = NextChar();
+			BufferChar(currentChar);
+			c = sourceFile.peek();
+		}
+}
+
+Token Scanner::CheckScientificNotation(char& currentChar, char& c)
+{
+	currentChar = NextChar();
+	BufferChar(currentChar);
+	c = sourceFile.peek();
+
+	if(c == '+' || c == '-')
+	{
+		currentChar = NextChar();
+		BufferChar(currentChar);
+		c = sourceFile.peek();
+
+		DigitWhileLoop(currentChar, c);
+	}
+
+	else
+		DigitWhileLoop(currentChar, c);
+
+	return FLOAT_LIT;
 }

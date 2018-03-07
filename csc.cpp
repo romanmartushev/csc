@@ -18,12 +18,12 @@ ofstream outFile,    // object program
 
 #include "cscScan.h"   // scanner component definition
 #include "cscParse.h"	 // parser component definition
-//#include "cscCode.h"   // code generator component definition
+#include "cscCode.h"   // code generator component definition
 
                      // GLOBAL COMPONENT OBJECTS
 Scanner scan;        // scanner
 Parser parse;        // parser
-//CodeGen code;        // code generator
+CodeGen code;        // code generator
 
 string Date();
 // Returns the current date.
@@ -73,9 +73,9 @@ int main(int argc, char* argv[])
 	listFile << " Source file: " << sourceName << endl << endl;
 	listFile << " LINE #" << endl;
 
-  parse.SystemGoal();
-  
-  Token scanToken = scan.GetNextToken();
+	parse.SystemGoal();
+
+	Token scanToken = scan.GetNextToken();
 	cout << "Test" << endl;
 	while(scanToken != EOF_SYM){
     string token;

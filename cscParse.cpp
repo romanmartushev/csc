@@ -9,8 +9,11 @@
 using namespace std;
 
 #include "cscParse.h"
+#include "cscCode.h"
+#include "cscScan.h"
 
 extern Scanner scan;
+extern CodeGen code;
 
 Parser::Parser()
 {
@@ -19,6 +22,7 @@ Parser::Parser()
 
 void Parser::SyntaxError(Token t, string msg)
 {
+	cout << t << endl;
 	cout << "Syntax Error: " + msg << endl;
 	exit(1); // abort on any syntax error
 }
@@ -762,12 +766,12 @@ void Parser::DecList()
 
 void Parser::Program()
 {
-	// code.Start();
+	code.Start();
 	Match(BEGIN_SYM);
 	DecList();
 	StmtList();
 	Match(END_SYM);
-	// code.End();
+	code.Finish();
 }
 
 void Parser::SystemGoal()

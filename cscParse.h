@@ -12,7 +12,7 @@ using namespace std;
 
 #include "cscScan.h" // scanner class definition
 
-//#include "_____.h" // code generator class definition
+#include "cscCode.h" // code generator class definition
 
 class Parser
 {
