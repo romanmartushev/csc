@@ -58,7 +58,7 @@ public:
 	// Declares the identifier in the token buffer and builds a
 	// corresponding semantic record e.
 
-	void ProcessLiteral(ExprRec& e);
+	void ProcessLit(ExprRec& e);
 	// Converts the literal found in the token buffer into numeric form
 	// and builds a corresponding semantic record e.
 

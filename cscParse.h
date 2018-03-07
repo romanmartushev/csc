@@ -57,15 +57,15 @@ private:
 
 	void MultOp();
 
-	void FactorTail();
+	void FactorTail(ExprRec& expr);
 
-	void Primary();
+	void Primary(ExprRec& expr);
 
 	void AddOp();
 
-	void ExprTail();
+	void ExprTail(ExprRec& expr);
 
-	void Factor();
+	void Factor(ExprRec& expr);
 
 	void RelOp();
 
@@ -103,7 +103,7 @@ private:
 
 	void VarList();
 
-	void Expression();
+	void Expression(ExprRec& expr);
 
 	void Variable();
 

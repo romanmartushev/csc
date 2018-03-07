@@ -76,7 +76,6 @@ int main(int argc, char* argv[])
 	parse.SystemGoal();
 
 	Token scanToken = scan.GetNextToken();
-	cout << "Test" << endl;
 	while(scanToken != EOF_SYM){
     string token;
     switch(scanToken){

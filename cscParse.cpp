@@ -244,7 +244,7 @@ void Parser::MultOp()
 	}
 }
 
-void Parser::FactorTail()
+void Parser::FactorTail(ExprRec& expr)
 {
 	switch (NextToken())
 	{
@@ -253,9 +253,9 @@ void Parser::FactorTail()
 	case INTEGERDIV_OP:
 		MultOp();
 		// code.ProcessOp();
-		Primary();
+		Primary(expr);
 		// code.GenInfix();
-		FactorTail();
+		FactorTail(expr);
 		break;
 	case RSTAPLE:
 	case RBANANA:
@@ -275,7 +275,7 @@ void Parser::FactorTail()
 	}
 }
 
-void Parser::Primary()
+void Parser::Primary(ExprRec& expr)
 {
 	switch (NextToken())
 	{
@@ -283,7 +283,7 @@ void Parser::Primary()
 	case FLOAT_LIT:
 	case SCRIBBLE_LIT:
 		Literal();
-		// code.ProcessLit();
+		code.ProcessLit(expr);
 		break;
 	case ID:
 		Variable();
@@ -291,7 +291,7 @@ void Parser::Primary()
 		break;
 	case LBANANA:
 		Match(LBANANA);
-		Expression();
+		Expression(expr);
 		Match(RBANANA);
 		break;
 	default:
@@ -314,7 +314,7 @@ void Parser::AddOp()
 	}
 }
 
-void Parser::ExprTail()
+void Parser::ExprTail(ExprRec& expr)
 {
 	switch (NextToken())
 	{
@@ -322,9 +322,9 @@ void Parser::ExprTail()
 	case MINUS_OP:
 		AddOp();
 		// code.ProcessOp();
-		Factor();
+		Factor(expr);
 		// code.GenInfix();
-		ExprTail();
+		ExprTail(expr);
 		break;
 	case RSTAPLE:
 	case RBANANA:
@@ -342,10 +342,10 @@ void Parser::ExprTail()
 	}
 }
 
-void Parser::Factor()
+void Parser::Factor(ExprRec& expr)
 {
-	Primary();
-	FactorTail();
+	Primary(expr);
+	FactorTail(expr);
 }
 
 void Parser::RelOp()
@@ -377,6 +377,7 @@ void Parser::RelOp()
 
 void Parser::CondTail()
 {
+	ExprRec expr;
 	switch (NextToken())
 	{
 	case LT_OP:
@@ -387,7 +388,7 @@ void Parser::CondTail()
 	case NE_OP:
 		RelOp();
 		// code.ProcessOp();
-		Expression();
+		Expression(expr);
 		break;
 	case RBANANA:
 	case SEMICOLON:
@@ -447,9 +448,10 @@ void Parser::IntList()
 
 void Parser::ForAssign()
 {
+	ExprRec expr;
 	Variable();
 	Match(ASSIGN_OP);
-	Expression();
+	Expression(expr);
 	// code.ForAssign();
 }
 
@@ -471,7 +473,8 @@ void Parser::ElseClause()
 
 void Parser::Condition()
 {
-	Expression();
+	ExprRec expr;
+	Expression(expr);
 	CondTail();
 	// code.SetCondition();
 }
@@ -532,11 +535,12 @@ void Parser::IfStmt()
 
 void Parser::ItemListTail()
 {
+	ExprRec expr;
 	switch (NextToken())
 	{
 	case COMMA:
 		Match(COMMA);
-		Expression();
+		Expression(expr);
 		// code.WriteExpr();
 		ItemListTail();
 		break;
@@ -549,18 +553,20 @@ void Parser::ItemListTail()
 
 void Parser::ItemList()
 {
-	Expression();
-	// code.WriteExpr();
+	ExprRec expr;
+	Expression(expr);
+	code.WriteExpr(expr);
 	ItemListTail();
 }
 
 void Parser::VariableTail()
 {
+	ExprRec expr;
 	switch (NextToken())
 	{
 	case LSTAPLE:
 		Match(LSTAPLE);
-		Expression();
+		Expression(expr);
 		Match(RSTAPLE);
 		break;
 	case RSTAPLE:
@@ -609,10 +615,10 @@ void Parser::VarList()
 	VarListTail();
 }
 
-void Parser::Expression()
+void Parser::Expression(ExprRec& expr)
 {
-	Factor();
-	ExprTail();
+	Factor(expr);
+	ExprTail(expr);
 }
 
 void Parser::Variable()
@@ -652,9 +658,10 @@ void Parser::InputStmt()
 
 void Parser::AssignStmt()
 {
+	ExprRec expr;
 	Variable();
 	Match(ASSIGN_OP);
-	Expression();
+	Expression(expr);
 	// code.Assign();
 	Match(SEMICOLON);
 }
@@ -766,6 +773,7 @@ void Parser::DecList()
 
 void Parser::Program()
 {
+	//You must always declare atleast 1 variable or you will always get a syntax error(fix??)
 	Match(BEGIN_SYM);
 	code.Start();
 	DecList();

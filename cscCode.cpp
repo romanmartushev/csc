@@ -218,7 +218,7 @@ void CodeGen::ProcessId(ExprRec& e)
 	e.name = scan.tokenBuffer;
 }
 
-void CodeGen::ProcessLiteral(ExprRec& e)
+void CodeGen::ProcessLit(ExprRec& e)
 {
 	e.kind = LITERAL_EXPR;
 	e.val = atoi(scan.tokenBuffer.data());
