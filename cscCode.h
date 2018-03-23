@@ -21,7 +21,7 @@ struct OpRec // information about an operator
 	OpKind op; // operator type
 };
 
-enum ExprKind { ID_EXPR, LITERAL_EXPR, TEMP_EXPR };
+enum ExprKind { ID_EXPR, LITERAL_EXPR, TEMP_EXPR, INT_LITERAL_EXPR, FLOAT_LITERAL_EXPR, SCRIBBLE_LITERAL_EXPR };
 
 struct ExprRec // information about a constant, variable, or
                // an intermediate (temporary) result
@@ -128,7 +128,7 @@ public:
 
 private:
 
-	vector<string> symbolTable;
+	vector<Symbol> symbolTable;
 
 	int  maxTemp;     // max temporary allocated so far; initially 0
 
@@ -136,7 +136,8 @@ private:
 	// Declares s as a new variable and enters it into the symbol table when s
 	// is not already in the symbol table.
 
-	void Enter(const string & s);
+	//void Enter(const string & s);
+	void Enter(const Symbol & s);
 	// Enters s unconditionally into the symbol table.
 
 	void ExtractExpr(const ExprRec & e, string& s);

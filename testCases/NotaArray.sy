@@ -1,0 +1,8 @@
+:A
+:: declare a variable
+catarray[10] : ints;
+
+::output zero
+:O ints[0];
+
+:Z

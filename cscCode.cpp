@@ -13,6 +13,7 @@ extern ofstream outFile, listFile;
 
 #include "cscScan.h"   // Scanner class definition
 #include "cscCode.h"   // CodeGen class definition
+#include "cscSymbol.h"
 
 extern Scanner scan; // global Scanner object declared in micro.cpp
 
@@ -35,7 +36,12 @@ void CodeGen::CheckId(const string & s)
 		Enter(s);
 }
 
-void CodeGen::Enter(const string & s)
+/*void CodeGen::Enter(const string & s)
+{
+	symbolTable.push_back(s);
+}*/
+
+void CodeGen::Enter(const Symbol & s)
 {
 	symbolTable.push_back(s);
 }
