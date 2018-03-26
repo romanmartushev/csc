@@ -41,7 +41,7 @@ private:
 
 	void Init();
 
-	void VarDecList();
+	void VarDecList(ExprRec& exprRec);
 
 	void DecTail();
 
@@ -51,7 +51,7 @@ private:
 
 	void SizeSpec();
 
-	void Type();
+	void Type(ExprRec& exprRec);
 
 	void Literal();
 

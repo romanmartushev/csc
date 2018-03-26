@@ -12,7 +12,8 @@
 using namespace std;
 
 #include "cscScan.h"
-
+#include "cscSymbol.h"
+#include "cscSymbol.h"
 
 enum OpKind { PLUS, MINUS };
 
@@ -28,7 +29,7 @@ struct ExprRec // information about a constant, variable, or
 {
    ExprKind kind;   // operand type
    string   name;   // used when kind is ID_EXPR or TEMP_EXPR
-   int      val;    // used when kind is LITERAL_EXPR
+   float      val;    // used when kind is LITERAL_EXPR
 };
 
 class CodeGen
@@ -75,10 +76,10 @@ public:
 	void WriteExpr(const ExprRec & OutExpr);
 	// Produces the assembly code for writing the value of OutExpr.
 
-	void DefineVar();
+	void DefineVar(ExprRec & exprRec);
 	// definition here
 
-	void InitializeVar();
+	void InitializeVar(ExprRec & exprRec);
 	// definition here
 
 	void FloatAppend();
@@ -132,12 +133,12 @@ private:
 
 	int  maxTemp;     // max temporary allocated so far; initially 0
 
-	void CheckId(const string & s);
+	void CheckId(const ExprRec & exprRec);
 	// Declares s as a new variable and enters it into the symbol table when s
 	// is not already in the symbol table.
 
-	//void Enter(const string & s);
-	void Enter(const Symbol & s);
+	void Enter(const ExprRec & s);
+	//void Enter(const Symbol & s);
 	// Enters s unconditionally into the symbol table.
 
 	void ExtractExpr(const ExprRec & e, string& s);

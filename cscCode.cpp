@@ -13,7 +13,7 @@ extern ofstream outFile, listFile;
 
 #include "cscScan.h"   // Scanner class definition
 #include "cscCode.h"   // CodeGen class definition
-#include "cscSymbol.h"
+
 
 extern Scanner scan; // global Scanner object declared in micro.cpp
 
@@ -30,9 +30,9 @@ CodeGen::CodeGen()
 // ** Private Member Functions  **
 // *******************************
 
-void CodeGen::CheckId(const string & s)
+void CodeGen::CheckId(const ExprRec & s)
 {
-	if (!LookUp(s))  // variable not declared yet
+	if (!LookUp(s.name))  // variable not declared yet
 		Enter(s);
 }
 
@@ -41,9 +41,29 @@ void CodeGen::CheckId(const string & s)
 	symbolTable.push_back(s);
 }*/
 
-void CodeGen::Enter(const Symbol & s)
+void CodeGen::Enter(const ExprRec & s)
 {
-	symbolTable.push_back(s);
+	Symbol symbol;
+	switch(s.kind)
+	{
+		case INT_LITERAL_EXPR:
+			symbol.Name = s.name;
+			symbol.DataType = Int;
+			symbol.InitialValue = s.val;
+		break;
+
+		case FLOAT_LITERAL_EXPR:
+			symbol.Name = s.name;
+			symbol.DataType = Float;
+			symbol.InitialValue = s.val;
+		break;
+
+		case SCRIBBLE_LITERAL_EXPR:
+			symbol.Name = s.name;
+			symbol.DataType = Scribble;
+		break;
+	}
+	symbolTable.push_back(symbol);
 }
 
 void CodeGen::ExtractExpr(const ExprRec & e, string& s)
@@ -57,7 +77,7 @@ void CodeGen::ExtractExpr(const ExprRec & e, string& s)
 	case TEMP_EXPR:  // operand form: +k(R15)
 		s = e.name;
 		n = 0;
-		while (symbolTable[n] != s) n++;
+		while (symbolTable[n].Name != s) n++;
 		k = 2 * n;  // offset: 2 bytes per variable
 		IntToAlpha(k, t);
 		s = "+" + t + "(R15)";
@@ -103,7 +123,7 @@ string CodeGen::GetTemp()
 	t = "Temp&";
 	IntToAlpha(++maxTemp, s);
 	t += s;
-	CheckId(t);
+	//CheckId(t);
 	return t;
 }
 
@@ -131,7 +151,7 @@ void CodeGen::IntToAlpha(int val, string& str)
 bool CodeGen::LookUp(const string & s)
 {
 	for (unsigned i = 0; i < symbolTable.size(); i++)
-	if (symbolTable[i] == s)
+	if (symbolTable[i].Name == s)
 		return true;
 
 	return false;
@@ -167,13 +187,13 @@ void CodeGen::Finish()
 	listFile << " <><><><>   S Y M B O L   T A B L E   <><><><>\n"
 		<< endl;
 	listFile << " Relative" << endl;
-	listFile << " Address      Identifier" << endl;
+	listFile << " Address      Identifier      Value      Type" << endl;
 	listFile << " --------     --------------------------------"
 		<< endl;
 	for (unsigned i = 0; i < symbolTable.size(); i++)
 	{
 		listFile.width(7);
-		listFile << 2*i << "       " << symbolTable[i] << endl;
+		listFile << 2*i << "       " << symbolTable[i].Name << "      " << symbolTable[i].InitialValue << "      " << symbolTable[i].DataType << endl;
 	}
 	listFile << " _____________________________________________"
 		<< endl;
@@ -219,7 +239,7 @@ void CodeGen::NewLine()
 
 void CodeGen::ProcessVar(ExprRec& e)
 {
-	CheckId(scan.tokenBuffer);
+	//CheckId(scan.tokenBuffer);
 	e.kind = ID_EXPR;
 	e.name = scan.tokenBuffer;
 }
@@ -259,13 +279,21 @@ void CodeGen::WriteExpr(const ExprRec & outExpr)
 	Generate("WRI       ", s, "");
 }
 
-void CodeGen::DefineVar()
+void CodeGen::DefineVar(ExprRec & exprRec)
 {
+	exprRec.name = scan.tokenBuffer;
 	//Code here
 }
-void CodeGen::InitializeVar()
+void CodeGen::InitializeVar(ExprRec & exprRec)
 {
 	//Code here
+
+	if(scan.tokenBuffer.length() != 0)
+		exprRec.val = stof(scan.tokenBuffer);
+	else
+		exprRec.val = 0;
+
+	CheckId(exprRec);
 }
 void CodeGen::FloatAppend()
 {

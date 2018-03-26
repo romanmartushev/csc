@@ -116,12 +116,12 @@ void Parser::Init()
 	}
 }
 
-void Parser::VarDecList()
+void Parser::VarDecList(ExprRec& exprRec)
 {
 	Match(ID);
-	// code.DefineVar();
+	code.DefineVar(exprRec);
 	Init();
-	// code.InitializeVar();
+	code.InitializeVar(exprRec);
 	VarDecTail();
 }
 
@@ -154,9 +154,11 @@ void Parser::DecTail()
 
 void Parser::Declaration()
 {
-	Type();
+	ExprRec rec;
+
+	Type(rec);
 	Match(COLON);
-	VarDecList();
+	VarDecList(rec);
 	Match(SEMICOLON);
 }
 
@@ -182,15 +184,17 @@ void Parser::SizeSpec()
 	}
 }
 
-void Parser::Type()
+void Parser::Type(ExprRec& exprRec)
 {
 	switch (NextToken())
 	{
 	case INT_SYM:
 		Match(INT_SYM);
+		exprRec.kind = INT_LITERAL_EXPR;
 		break;
 	case FLOAT_SYM:
 		Match(FLOAT_SYM);
+		exprRec.kind = FLOAT_LITERAL_EXPR;
 		break;
 	case INTARRAY_SYM:
 		Match(INTARRAY_SYM);
@@ -202,6 +206,7 @@ void Parser::Type()
 		break;
 	case SCRIBBLE_SYM:
 		ScribbleType();
+		exprRec.kind = SCRIBBLE_LITERAL_EXPR;
 		break;
 	default:
 		SyntaxError(NextToken(), "");
@@ -598,7 +603,7 @@ void Parser::VarListTail()
 	case COMMA:
 		Match(COMMA);
 		Variable();
-		// code.InputVar();
+		//code.InputVar();
 		VarListTail();
 		break;
 	case SEMICOLON:
@@ -610,8 +615,9 @@ void Parser::VarListTail()
 
 void Parser::VarList()
 {
+	ExprRec identifier;
 	Variable();
-	// code.InputVar();
+	//code.InputVar();
 	VarListTail();
 }
 

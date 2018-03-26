@@ -17,6 +17,8 @@ public:
 	float InitialValue;
 
 	Symbol(string Name, Type DataType);
+	Symbol(string Name);
+	Symbol();
 };
 
 #endif

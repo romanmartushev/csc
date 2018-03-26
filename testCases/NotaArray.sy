@@ -1,8 +1,8 @@
 :A
 :: declare a variable
-catarray[10] : ints;
-
+int : x;
+x := 1;
 ::output zero
-:O ints[0];
+:I x;
 
 :Z
