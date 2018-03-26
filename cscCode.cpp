@@ -44,25 +44,33 @@ void CodeGen::CheckId(const ExprRec & s)
 void CodeGen::Enter(const ExprRec & s)
 {
 	Symbol symbol;
+	int size;
 	switch(s.kind)
 	{
+		case ID_EXPR:
+		case LITERAL_EXPR:
+		case TEMP_EXPR:
 		case INT_LITERAL_EXPR:
-			symbol.Name = s.name;
 			symbol.DataType = Int;
 			symbol.InitialValue = s.val;
+			size = 2;
 		break;
-
 		case FLOAT_LITERAL_EXPR:
-			symbol.Name = s.name;
 			symbol.DataType = Float;
 			symbol.InitialValue = s.val;
+			size = 4;
 		break;
-
 		case SCRIBBLE_LITERAL_EXPR:
-			symbol.Name = s.name;
 			symbol.DataType = Scribble;
+			//TODO: Size
 		break;
 	}
+	symbol.Name = s.name;
+	symbol.RelativeAddress = Offset;
+
+	Offset += size;
+	Offset = Offset % 2 == 1 ? Offset += 1 : Offset;
+
 	symbolTable.push_back(symbol);
 }
 
@@ -71,9 +79,12 @@ void CodeGen::ExtractExpr(const ExprRec & e, string& s)
 	string t;
 	int k, n;
 
+
 	switch (e.kind)
 	{
 	case ID_EXPR:
+	case INT_LITERAL_EXPR:
+	case FLOAT_LITERAL_EXPR:
 	case TEMP_EXPR:  // operand form: +k(R15)
 		s = e.name;
 		n = 0;
@@ -85,15 +96,26 @@ void CodeGen::ExtractExpr(const ExprRec & e, string& s)
 	case LITERAL_EXPR:
 		IntToAlpha(e.val, t);
 		s = "#" + t;
+		break;
+	case SCRIBBLE_LITERAL_EXPR:
+		break;
 	}
 }
 
 string CodeGen::ExtractOp(const OpRec & o)
 {
-	if (o.op == PLUS)
-		return "IA        ";
-	else
-		return "IS        ";
+	switch(o.op)
+	{
+		case PLUS:
+			return "IA        ";
+		case MINUS:
+			return "IS        ";
+		case MULTIPLY:
+			return "IM        ";
+		case DIVIDE:
+			return "ID        ";
+	}
+
 }
 
 void CodeGen::Generate(const string & s1, const string & s2, const string & s3)
@@ -193,7 +215,7 @@ void CodeGen::Finish()
 	for (unsigned i = 0; i < symbolTable.size(); i++)
 	{
 		listFile.width(7);
-		listFile << 2*i << "       " << symbolTable[i].Name << "      " << symbolTable[i].InitialValue << "      " << symbolTable[i].DataType << endl;
+		listFile << symbolTable[i].RelativeAddress << "       " << symbolTable[i].Name << "      " << symbolTable[i].InitialValue << "      " << symbolTable[i].DataType << endl;
 	}
 	listFile << " _____________________________________________"
 		<< endl;
@@ -217,6 +239,13 @@ void CodeGen::GenInfix(const ExprRec & e1, const OpRec & op,
 			break;
 		case MINUS:
 			e.val = e1.val - e2.val;
+			break;
+		case MULTIPLY:
+			e.val = e1.val * e2.val;
+			break;
+		case DIVIDE:
+			e.val = e1.val/e2.val;
+			break;
 		}
 	}
 	else
@@ -258,12 +287,17 @@ void CodeGen::ProcessOp(OpRec& o)
 		o.op = MINUS;
 }
 
-void CodeGen::InputVar(const ExprRec & inVar)
+void CodeGen::InputVar(ExprRec & inVar)
 {
 	string s;
 
-	ExtractExpr(inVar, s);
-	Generate("RDI       ", s, "");
+	int index = GetSymbolValue(inVar);
+	//ExtractExpr(inVar, s);
+	s = "+" + to_string(symbolTable[index].RelativeAddress) + "(R15)";
+	if(inVar.kind == INT_LITERAL_EXPR)
+		Generate("RDI       ", s, "");
+	if(inVar.kind == FLOAT_LITERAL_EXPR)
+		Generate("RDF       ", s, "");
 }
 
 void CodeGen::Start()
@@ -271,12 +305,44 @@ void CodeGen::Start()
 	Generate("LDA       ", "R15", "VARS");
 }
 
-void CodeGen::WriteExpr(const ExprRec & outExpr)
+void CodeGen::WriteExpr(ExprRec & outExpr)
 {
-	string s;
+	if(outExpr.kind == LITERAL_EXPR){
+		string s;
+		ExtractExpr(outExpr, s);
+		Generate("WRI       ", s, "");
+	}else{
+		int index = GetSymbolValue(outExpr);
+		string s = "+" + to_string(symbolTable[index].RelativeAddress) + "(R15)";
+		if(outExpr.kind == INT_LITERAL_EXPR)
+			Generate("WRI       ", s, "");
+		if(outExpr.kind == FLOAT_LITERAL_EXPR)
+			Generate("WRF       ", s, "");
+	}
+}
 
-	ExtractExpr(outExpr, s);
-	Generate("WRI       ", s, "");
+int CodeGen::GetSymbolValue(ExprRec& e)
+{
+	int index;
+
+	for(int i = 0 ; i < symbolTable.size(); i++){
+		if(e.name == symbolTable[i].Name){
+			index = i;
+			switch(symbolTable[i].DataType){
+				case Int:
+					e.kind = INT_LITERAL_EXPR;
+					break;
+				case Float:
+					e.kind = FLOAT_LITERAL_EXPR;
+					break;
+				case Scribble:
+					e.kind = SCRIBBLE_LITERAL_EXPR;
+					break;
+			}
+		}
+	}
+
+	return index;
 }
 
 void CodeGen::DefineVar(ExprRec & exprRec)

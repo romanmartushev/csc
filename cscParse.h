@@ -105,7 +105,7 @@ private:
 
 	void Expression(ExprRec& expr);
 
-	void Variable();
+	void Variable(ExprRec& identifer);
 
 	void BreakStmt();
 

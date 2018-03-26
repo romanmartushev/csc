@@ -4,6 +4,10 @@
 int : x;
 float : y;
 
+:O 0;
+:N;
+:I x,y;
+:N;
 :O x,y;
 
 

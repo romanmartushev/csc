@@ -15,7 +15,7 @@ using namespace std;
 #include "cscSymbol.h"
 #include "cscSymbol.h"
 
-enum OpKind { PLUS, MINUS };
+enum OpKind { PLUS, MINUS, MULTIPLY, DIVIDE };
 
 struct OpRec // information about an operator
 {
@@ -35,12 +35,13 @@ struct ExprRec // information about a constant, variable, or
 class CodeGen
 {
 public:
-
+	int Offset;
 	CodeGen();
 	// Initializes the code generator;
 
 /* _____________________________________________________________________________
 */
+	int GetSymbolValue(ExprRec & e);
 
 	void Assign(const ExprRec & target, const ExprRec & source);
 	// Produces the assembly code for an assignment from Source to Target.
@@ -67,13 +68,13 @@ public:
 	// Produces an operator descriptor O for the operator in the token
 	// buffer.
 
-	void InputVar(const ExprRec & InVar);
+	void InputVar(ExprRec & InVar);
 	// Produces the assembly code for reading a value for InVar.
 
 	void Start();
 	// Initializes the compiler.
 
-	void WriteExpr(const ExprRec & OutExpr);
+	void WriteExpr(ExprRec & OutExpr);
 	// Produces the assembly code for writing the value of OutExpr.
 
 	void DefineVar(ExprRec & exprRec);

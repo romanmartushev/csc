@@ -15,3 +15,25 @@ Symbol::Symbol()
 {
 
 }
+
+/*void Symbol::SetupRelativeAddress()
+{
+	int size;
+
+	switch(DataType)
+	{
+		case Int:
+			size = 1;
+			break;
+		case Float:
+			size = 2;
+			break;
+		case Scribble:
+
+			break;
+			//Todo
+	}
+
+	RelativeAddress = this->Offset + size;
+	this->Offset += size;
+}*/

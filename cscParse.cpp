@@ -291,7 +291,7 @@ void Parser::Primary(ExprRec& expr)
 		code.ProcessLit(expr);
 		break;
 	case ID:
-		Variable();
+		Variable(expr);
 		// code.ProcessVar();
 		break;
 	case LBANANA:
@@ -454,7 +454,7 @@ void Parser::IntList()
 void Parser::ForAssign()
 {
 	ExprRec expr;
-	Variable();
+	Variable(expr);
 	Match(ASSIGN_OP);
 	Expression(expr);
 	// code.ForAssign();
@@ -546,7 +546,7 @@ void Parser::ItemListTail()
 	case COMMA:
 		Match(COMMA);
 		Expression(expr);
-		// code.WriteExpr();
+		code.WriteExpr(expr);
 		ItemListTail();
 		break;
 	case SEMICOLON:
@@ -598,12 +598,13 @@ void Parser::VariableTail()
 
 void Parser::VarListTail()
 {
+	ExprRec expr;
 	switch (NextToken())
 	{
 	case COMMA:
 		Match(COMMA);
-		Variable();
-		//code.InputVar();
+		Variable(expr);
+		code.InputVar(expr);
 		VarListTail();
 		break;
 	case SEMICOLON:
@@ -616,8 +617,8 @@ void Parser::VarListTail()
 void Parser::VarList()
 {
 	ExprRec identifier;
-	Variable();
-	//code.InputVar();
+	Variable(identifier);
+	code.InputVar(identifier);
 	VarListTail();
 }
 
@@ -627,10 +628,13 @@ void Parser::Expression(ExprRec& expr)
 	ExprTail(expr);
 }
 
-void Parser::Variable()
+void Parser::Variable(ExprRec& identifer)
 {
 	Match(ID);
+	identifer.name = scan.tokenBuffer;
+	//identifer.kind = ID_EXPR;
 	VariableTail();
+
 	// code.ProcessVar();
 }
 
@@ -665,7 +669,7 @@ void Parser::InputStmt()
 void Parser::AssignStmt()
 {
 	ExprRec expr;
-	Variable();
+	Variable(expr);
 	Match(ASSIGN_OP);
 	Expression(expr);
 	// code.Assign();
