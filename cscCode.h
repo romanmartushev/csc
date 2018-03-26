@@ -43,14 +43,13 @@ public:
 */
 	int GetSymbolValue(ExprRec & e);
 
-	void Assign(const ExprRec & target, const ExprRec & source);
+	void Assign(ExprRec & target, ExprRec & source);
 	// Produces the assembly code for an assignment from Source to Target.
 
 	void Finish();
 	// Generates code to finish the program.
 
-	void GenInfix(const ExprRec & e1, const OpRec & op,
-	              const ExprRec & e2, ExprRec& e);
+	void GenInfix(ExprRec & e1, const OpRec & op, ExprRec & e2, ExprRec& e);
 	// Produces the assembly code for an infix operation.
 
 	void NewLine();

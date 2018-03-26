@@ -321,14 +321,19 @@ void Parser::AddOp()
 
 void Parser::ExprTail(ExprRec& expr)
 {
+	ExprRec leftOperand, rightOperand;
+	OpRec op;
 	switch (NextToken())
 	{
 	case PLUS_OP:
 	case MINUS_OP:
+			leftOperand.kind = expr.kind;
+			leftOperand.val = expr.val;
+			leftOperand.name= expr.name;
 		AddOp();
-		// code.ProcessOp();
-		Factor(expr);
-		// code.GenInfix();
+		code.ProcessOp(op);
+		Factor(rightOperand);
+		code.GenInfix(leftOperand,op,rightOperand,expr);
 		ExprTail(expr);
 		break;
 	case RSTAPLE:
@@ -632,9 +637,7 @@ void Parser::Variable(ExprRec& identifer)
 {
 	Match(ID);
 	identifer.name = scan.tokenBuffer;
-	//identifer.kind = ID_EXPR;
 	VariableTail();
-
 	// code.ProcessVar();
 }
 
@@ -668,11 +671,11 @@ void Parser::InputStmt()
 
 void Parser::AssignStmt()
 {
-	ExprRec expr;
+	ExprRec expr, result;
 	Variable(expr);
 	Match(ASSIGN_OP);
-	Expression(expr);
-	// code.Assign();
+	Expression(result);
+	code.Assign(expr, result);
 	Match(SEMICOLON);
 }
 
@@ -783,7 +786,6 @@ void Parser::DecList()
 
 void Parser::Program()
 {
-	//You must always declare atleast 1 variable or you will always get a syntax error(fix??)
 	Match(BEGIN_SYM);
 	code.Start();
 	DecList();

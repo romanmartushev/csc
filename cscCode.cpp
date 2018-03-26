@@ -145,7 +145,6 @@ string CodeGen::GetTemp()
 	t = "Temp&";
 	IntToAlpha(++maxTemp, s);
 	t += s;
-	//CheckId(t);
 	return t;
 }
 
@@ -183,13 +182,19 @@ bool CodeGen::LookUp(const string & s)
 // ** Public Member Functions  **
 // ******************************
 
-void CodeGen::Assign(const ExprRec & target, const ExprRec & source)
+void CodeGen::Assign(ExprRec & target, ExprRec & source)
 {
 	string s;
-
-	ExtractExpr(source, s);
+	int index;
+	if(source.kind == LITERAL_EXPR){
+		ExtractExpr(source, s);
+	}else{
+		index = GetSymbolValue(source);
+		s = "+" + to_string(symbolTable[index].RelativeAddress) + "(R15)";
+	}
 	Generate("LD        ", "R0", s);
-	ExtractExpr(target, s);
+	index = GetSymbolValue(target);
+	s = "+" + to_string(symbolTable[index].RelativeAddress) + "(R15)";
 	Generate("STO       ", "R0", s);
 }
 
@@ -210,12 +215,13 @@ void CodeGen::Finish()
 		<< endl;
 	listFile << " Relative" << endl;
 	listFile << " Address      Identifier      Value      Type" << endl;
-	listFile << " --------     --------------------------------"
+	listFile << " --------     ----------      -----      -----"
 		<< endl;
 	for (unsigned i = 0; i < symbolTable.size(); i++)
 	{
 		listFile.width(7);
-		listFile << symbolTable[i].RelativeAddress << "       " << symbolTable[i].Name << "      " << symbolTable[i].InitialValue << "      " << symbolTable[i].DataType << endl;
+		listFile << symbolTable[i].RelativeAddress << "       "<< symbolTable[i].Name << "               "
+		<< symbolTable[i].InitialValue << "          " << symbolTable[i].DataType << endl;
 	}
 	listFile << " _____________________________________________"
 		<< endl;
@@ -224,10 +230,10 @@ void CodeGen::Finish()
 	listFile.close();
 }
 
-void CodeGen::GenInfix(const ExprRec & e1, const OpRec & op,
-                       const ExprRec & e2, ExprRec& e)
+void CodeGen::GenInfix(ExprRec & e1, const OpRec & op, ExprRec & e2, ExprRec& e)
 {
 	string opnd;
+	int index;
 
 	if (e1.kind == LITERAL_EXPR && e2.kind == LITERAL_EXPR)
 	{
@@ -252,11 +258,18 @@ void CodeGen::GenInfix(const ExprRec & e1, const OpRec & op,
 	{
 		e.kind = TEMP_EXPR;
 		e.name = GetTemp();
-		ExtractExpr(e1, opnd);
+		CheckId(e);
+		//ExtractExpr(e1, opnd);
+		index = GetSymbolValue(e1);
+		opnd = "+" + to_string(symbolTable[index].RelativeAddress) + "(R15)";
 		Generate("LD        ", "R0", opnd);
-		ExtractExpr(e2, opnd);
+		//ExtractExpr(e2, opnd);
+		index = GetSymbolValue(e2);
+		opnd = "+" + to_string(symbolTable[index].RelativeAddress) + "(R15)";
 		Generate(ExtractOp(op), "R0", opnd);
-		ExtractExpr(e, opnd);
+		//ExtractExpr(e, opnd);
+		index = GetSymbolValue(e);
+		opnd = "+" + to_string(symbolTable[index].RelativeAddress) + "(R15)";
 		Generate("STO       ", "R0", opnd);
 	}
 }
@@ -268,7 +281,6 @@ void CodeGen::NewLine()
 
 void CodeGen::ProcessVar(ExprRec& e)
 {
-	//CheckId(scan.tokenBuffer);
 	e.kind = ID_EXPR;
 	e.name = scan.tokenBuffer;
 }
