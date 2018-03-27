@@ -1,22 +1,29 @@
 :A
 :: This program is used to test arithmetic expression evaluations
 
-int : x;
-int : y;
-int : z;
+  int : x;
+  int : y;
+  int : z;
 
-:I x,y;
-:N;
-:O x,y;
-:N;
-z := 5;
-:O z;
-:N;
+  :I x,y;
 
-z := x+y;
+  :N;
 
-:O x,y,z;
-:N;
-:O 0;
+  :O x,y;
 
+  :N;
+
+  z := 5;
+
+  :O z;
+
+  :N;
+
+  z := x+y;
+
+  :O x,y,z;
+
+  :N;
+  
+  :O 0;
 :Z

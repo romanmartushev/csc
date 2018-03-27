@@ -41,7 +41,7 @@ public:
 
 /* _____________________________________________________________________________
 */
-	int GetSymbolValue(ExprRec & e);
+	void GetSymbolValue(ExprRec & e, string & s);
 
 	void Assign(ExprRec & target, ExprRec & source);
 	// Produces the assembly code for an assignment from Source to Target.

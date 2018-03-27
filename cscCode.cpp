@@ -36,11 +36,6 @@ void CodeGen::CheckId(const ExprRec & s)
 		Enter(s);
 }
 
-/*void CodeGen::Enter(const string & s)
-{
-	symbolTable.push_back(s);
-}*/
-
 void CodeGen::Enter(const ExprRec & s)
 {
 	Symbol symbol;
@@ -185,16 +180,9 @@ bool CodeGen::LookUp(const string & s)
 void CodeGen::Assign(ExprRec & target, ExprRec & source)
 {
 	string s;
-	int index;
-	if(source.kind == LITERAL_EXPR){
-		ExtractExpr(source, s);
-	}else{
-		index = GetSymbolValue(source);
-		s = "+" + to_string(symbolTable[index].RelativeAddress) + "(R15)";
-	}
+	GetSymbolValue(source,s);
 	Generate("LD        ", "R0", s);
-	index = GetSymbolValue(target);
-	s = "+" + to_string(symbolTable[index].RelativeAddress) + "(R15)";
+	GetSymbolValue(target,s);
 	Generate("STO       ", "R0", s);
 }
 
@@ -233,8 +221,6 @@ void CodeGen::Finish()
 void CodeGen::GenInfix(ExprRec & e1, const OpRec & op, ExprRec & e2, ExprRec& e)
 {
 	string opnd;
-	int index;
-
 	if (e1.kind == LITERAL_EXPR && e2.kind == LITERAL_EXPR)
 	{
 		e.kind = LITERAL_EXPR;
@@ -259,17 +245,12 @@ void CodeGen::GenInfix(ExprRec & e1, const OpRec & op, ExprRec & e2, ExprRec& e)
 		e.kind = TEMP_EXPR;
 		e.name = GetTemp();
 		CheckId(e);
-		//ExtractExpr(e1, opnd);
-		index = GetSymbolValue(e1);
-		opnd = "+" + to_string(symbolTable[index].RelativeAddress) + "(R15)";
+
+		GetSymbolValue(e1,opnd);
 		Generate("LD        ", "R0", opnd);
-		//ExtractExpr(e2, opnd);
-		index = GetSymbolValue(e2);
-		opnd = "+" + to_string(symbolTable[index].RelativeAddress) + "(R15)";
+		GetSymbolValue(e2,opnd);
 		Generate(ExtractOp(op), "R0", opnd);
-		//ExtractExpr(e, opnd);
-		index = GetSymbolValue(e);
-		opnd = "+" + to_string(symbolTable[index].RelativeAddress) + "(R15)";
+		GetSymbolValue(e,opnd);
 		Generate("STO       ", "R0", opnd);
 	}
 }
@@ -302,10 +283,7 @@ void CodeGen::ProcessOp(OpRec& o)
 void CodeGen::InputVar(ExprRec & inVar)
 {
 	string s;
-
-	int index = GetSymbolValue(inVar);
-	//ExtractExpr(inVar, s);
-	s = "+" + to_string(symbolTable[index].RelativeAddress) + "(R15)";
+	GetSymbolValue(inVar,s);
 	if(inVar.kind == INT_LITERAL_EXPR)
 		Generate("RDI       ", s, "");
 	if(inVar.kind == FLOAT_LITERAL_EXPR)
@@ -319,42 +297,41 @@ void CodeGen::Start()
 
 void CodeGen::WriteExpr(ExprRec & outExpr)
 {
-	if(outExpr.kind == LITERAL_EXPR){
-		string s;
-		ExtractExpr(outExpr, s);
+	string s;
+	GetSymbolValue(outExpr,s);
+	if(outExpr.kind == INT_LITERAL_EXPR || outExpr.kind == LITERAL_EXPR)
 		Generate("WRI       ", s, "");
-	}else{
-		int index = GetSymbolValue(outExpr);
-		string s = "+" + to_string(symbolTable[index].RelativeAddress) + "(R15)";
-		if(outExpr.kind == INT_LITERAL_EXPR)
-			Generate("WRI       ", s, "");
-		if(outExpr.kind == FLOAT_LITERAL_EXPR)
-			Generate("WRF       ", s, "");
-	}
+	if(outExpr.kind == FLOAT_LITERAL_EXPR)
+		Generate("WRF       ", s, "");
 }
 
-int CodeGen::GetSymbolValue(ExprRec& e)
+void CodeGen::GetSymbolValue(ExprRec& e, string & s)
 {
 	int index;
+	string t;
 
-	for(int i = 0 ; i < symbolTable.size(); i++){
-		if(e.name == symbolTable[i].Name){
-			index = i;
-			switch(symbolTable[i].DataType){
-				case Int:
-					e.kind = INT_LITERAL_EXPR;
-					break;
-				case Float:
-					e.kind = FLOAT_LITERAL_EXPR;
-					break;
-				case Scribble:
-					e.kind = SCRIBBLE_LITERAL_EXPR;
-					break;
+	if(e.kind == LITERAL_EXPR){
+		IntToAlpha(e.val, t);
+		s = "#" + t;
+	}else{
+		for(int i = 0 ; i < symbolTable.size(); i++){
+			if(e.name == symbolTable[i].Name){
+				index = i;
+				switch(symbolTable[i].DataType){
+					case Int:
+						e.kind = INT_LITERAL_EXPR;
+						break;
+					case Float:
+						e.kind = FLOAT_LITERAL_EXPR;
+						break;
+					case Scribble:
+						e.kind = SCRIBBLE_LITERAL_EXPR;
+						break;
+				}
 			}
 		}
+		s = "+" + to_string(symbolTable[index].RelativeAddress) + "(R15)";
 	}
-
-	return index;
 }
 
 void CodeGen::DefineVar(ExprRec & exprRec)

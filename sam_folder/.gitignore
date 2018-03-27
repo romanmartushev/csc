@@ -2,3 +2,6 @@
 *.asm
 *.lis
 *.obj
+trace.txt
+macc
+sam
