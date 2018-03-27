@@ -81,17 +81,19 @@ void Parser::InitValue()
 	}
 }
 
-void Parser::VarDecTail()
+void Parser::VarDecTail(ExprRec& exprRec)
 {
+	ExprRec rec;
 	switch (NextToken())
 	{
 	case COMMA:
+		rec.kind = exprRec.kind;
 		Match(COMMA);
 		Match(ID);
-		// code.DefineVar();
+		code.DefineVar(rec);
 		Init();
-		// code.InitializeVar();
-		VarDecTail();
+		code.InitializeVar(rec);
+		VarDecTail(exprRec);
 		break;
 	case SEMICOLON:
 		break;
@@ -122,7 +124,7 @@ void Parser::VarDecList(ExprRec& exprRec)
 	code.DefineVar(exprRec);
 	Init();
 	code.InitializeVar(exprRec);
-	VarDecTail();
+	VarDecTail(exprRec);
 }
 
 void Parser::DecTail()
@@ -251,15 +253,22 @@ void Parser::MultOp()
 
 void Parser::FactorTail(ExprRec& expr)
 {
+	ExprRec leftOperand, rightOperand;
+	OpRec op;
+
 	switch (NextToken())
 	{
 	case MULT_OP:
 	case REALDIV_OP:
 	case INTEGERDIV_OP:
+			leftOperand.kind = expr.kind;
+			leftOperand.val = expr.val;
+			leftOperand.name= expr.name;
+		op.kind = expr.kind;
 		MultOp();
-		// code.ProcessOp();
-		Primary(expr);
-		// code.GenInfix();
+		code.ProcessOp(op);
+		Primary(rightOperand);
+		code.GenInfix(leftOperand,op,rightOperand,expr);
 		FactorTail(expr);
 		break;
 	case RSTAPLE:
@@ -288,11 +297,13 @@ void Parser::Primary(ExprRec& expr)
 	case FLOAT_LIT:
 	case SCRIBBLE_LIT:
 		Literal();
+
 		code.ProcessLit(expr);
 		break;
 	case ID:
 		Variable(expr);
-		// code.ProcessVar();
+		//code.ProcessVar(expr);
+
 		break;
 	case LBANANA:
 		Match(LBANANA);
@@ -330,6 +341,7 @@ void Parser::ExprTail(ExprRec& expr)
 			leftOperand.kind = expr.kind;
 			leftOperand.val = expr.val;
 			leftOperand.name= expr.name;
+		op.kind = expr.kind;
 		AddOp();
 		code.ProcessOp(op);
 		Factor(rightOperand);
@@ -356,6 +368,7 @@ void Parser::Factor(ExprRec& expr)
 {
 	Primary(expr);
 	FactorTail(expr);
+
 }
 
 void Parser::RelOp()
@@ -638,7 +651,7 @@ void Parser::Variable(ExprRec& identifer)
 	Match(ID);
 	identifer.name = scan.tokenBuffer;
 	VariableTail();
-	// code.ProcessVar();
+	code.ProcessVar(identifer);
 }
 
 void Parser::BreakStmt()
@@ -672,10 +685,16 @@ void Parser::InputStmt()
 void Parser::AssignStmt()
 {
 	ExprRec expr, result;
+
 	Variable(expr);
+
 	Match(ASSIGN_OP);
+
 	Expression(result);
+
 	code.Assign(expr, result);
+
+
 	Match(SEMICOLON);
 }
 

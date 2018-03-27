@@ -1,8 +1,12 @@
 :A
 :: declare a variable
-int : x;
+float : x, z;
+float : y;
+int : w;
+y := 5;
 x := 1;
+x := x / y;
 ::output zero
 :I x;
-
+:O x + y;
 :Z

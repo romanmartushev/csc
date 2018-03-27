@@ -16,13 +16,14 @@ using namespace std;
 #include "cscSymbol.h"
 
 enum OpKind { PLUS, MINUS, MULTIPLY, DIVIDE };
+enum ExprKind { ID_EXPR, LITERAL_EXPR, TEMP_EXPR, INT_LITERAL_EXPR, FLOAT_LITERAL_EXPR, SCRIBBLE_LITERAL_EXPR };
 
 struct OpRec // information about an operator
 {
+	ExprKind kind;
 	OpKind op; // operator type
 };
 
-enum ExprKind { ID_EXPR, LITERAL_EXPR, TEMP_EXPR, INT_LITERAL_EXPR, FLOAT_LITERAL_EXPR, SCRIBBLE_LITERAL_EXPR };
 
 struct ExprRec // information about a constant, variable, or
                // an intermediate (temporary) result

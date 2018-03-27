@@ -37,7 +37,7 @@ private:
 
 	void InitValue();
 
-	void VarDecTail();
+	void VarDecTail(ExprRec& exprRec);
 
 	void Init();
 

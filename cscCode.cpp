@@ -99,18 +99,36 @@ void CodeGen::ExtractExpr(const ExprRec & e, string& s)
 
 string CodeGen::ExtractOp(const OpRec & o)
 {
-	switch(o.op)
+	if(o.kind == INT_LITERAL_EXPR)
 	{
-		case PLUS:
-			return "IA        ";
-		case MINUS:
-			return "IS        ";
-		case MULTIPLY:
-			return "IM        ";
-		case DIVIDE:
-			return "ID        ";
-	}
+		switch(o.op)
+		{
+			case PLUS:
+				return "IA        ";
+			case MINUS:
+				return "IS        ";
+			case MULTIPLY:
+				return "IM        ";
+			case DIVIDE:
+				return "ID        ";
 
+		}
+	}
+	else if (o.kind == FLOAT_LITERAL_EXPR)
+	{
+		switch(o.op)
+		{
+			case PLUS:
+				return "FA        ";
+			case MINUS:
+				return "FS        ";
+			case MULTIPLY:
+				return "FM        ";
+			case DIVIDE:
+				return "FD        ";
+
+		}
+	}
 }
 
 void CodeGen::Generate(const string & s1, const string & s2, const string & s3)
@@ -242,7 +260,7 @@ void CodeGen::GenInfix(ExprRec & e1, const OpRec & op, ExprRec & e2, ExprRec& e)
 	}
 	else
 	{
-		e.kind = TEMP_EXPR;
+		//e.kind = TEMP_EXPR;
 		e.name = GetTemp();
 		CheckId(e);
 
@@ -262,8 +280,9 @@ void CodeGen::NewLine()
 
 void CodeGen::ProcessVar(ExprRec& e)
 {
-	e.kind = ID_EXPR;
-	e.name = scan.tokenBuffer;
+	string s;
+	//e.name = scan.tokenBuffer;
+	GetSymbolValue(e, s);
 }
 
 void CodeGen::ProcessLit(ExprRec& e)
@@ -276,8 +295,12 @@ void CodeGen::ProcessOp(OpRec& o)
 {
 	if (scan.tokenBuffer == "+")
 		o.op = PLUS;
-	else
+	else if (scan.tokenBuffer == "-")
 		o.op = MINUS;
+	else if (scan.tokenBuffer == "*")
+		o.op = MULTIPLY;
+	else if (scan.tokenBuffer == "/")
+		o.op = DIVIDE;
 }
 
 void CodeGen::InputVar(ExprRec & inVar)
@@ -313,7 +336,8 @@ void CodeGen::GetSymbolValue(ExprRec& e, string & s)
 	if(e.kind == LITERAL_EXPR){
 		IntToAlpha(e.val, t);
 		s = "#" + t;
-	}else{
+	}
+	else{
 		for(int i = 0 ; i < symbolTable.size(); i++){
 			if(e.name == symbolTable[i].Name){
 				index = i;
@@ -333,6 +357,7 @@ void CodeGen::GetSymbolValue(ExprRec& e, string & s)
 		s = "+" + to_string(symbolTable[index].RelativeAddress) + "(R15)";
 	}
 }
+
 
 void CodeGen::DefineVar(ExprRec & exprRec)
 {
