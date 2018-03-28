@@ -272,6 +272,13 @@ Token Scanner::GetNextToken()
 
 				if(currentChar != '"')
 				{
+					if( currentChar == '\\')
+					{
+						if(c == '"'){
+							NextChar();
+							BufferChar('"');
+						}
+					}
 					if(currentChar == ':')
 					{
 						BufferChar(':');
@@ -282,16 +289,7 @@ Token Scanner::GetNextToken()
 				}
 				else
 				{
-					if(c == '"')
-					{
-						NextChar();
-						BufferChar(':');
-						BufferChar('"');
-					}
-					else
-					{
-						break;
-					}
+					break;
 				}
 			}
 			BufferChar(char(0));

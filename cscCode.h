@@ -20,7 +20,7 @@ enum ExprKind { ID_EXPR, LITERAL_EXPR, TEMP_EXPR, INT_LITERAL_EXPR, FLOAT_LITERA
 
 struct OpRec // information about an operator
 {
-	ExprKind kind;
+	ExprKind kind; //used for distinguishing float or int arithmetic
 	OpKind op; // operator type
 };
 
@@ -29,8 +29,8 @@ struct ExprRec // information about a constant, variable, or
                // an intermediate (temporary) result
 {
    ExprKind kind;   // operand type
-   string   name;   // used when kind is ID_EXPR or TEMP_EXPR
-   float      val;    // used when kind is LITERAL_EXPR
+   string   name;   // used when kind is ID_EXPR or TEMP_EXPR or FLOAT_LITERAL_EXPR or INT_LITERAL_EXPR
+   float      val;    // used when kind is ID_EXPR or TEMP_EXPR or FLOAT_LITERAL_EXPR or INT_LITERAL_EXPR
 };
 
 class CodeGen
@@ -43,6 +43,8 @@ public:
 /* _____________________________________________________________________________
 */
 	void GetSymbolValue(ExprRec & e, string & s);
+	// sets the kind of incoming symbol to the previsouly declared type
+	// Returns the offset of a variable in the symbolTable
 
 	void Assign(ExprRec & target, ExprRec & source);
 	// Produces the assembly code for an assignment from Source to Target.
@@ -135,15 +137,11 @@ private:
 	int  maxTemp;     // max temporary allocated so far; initially 0
 
 	void CheckId(const ExprRec & exprRec);
-	// Declares s as a new variable and enters it into the symbol table when s
-	// is not already in the symbol table.
+	// Checks to see if a ExprRec was enter into the symbolTable
+	// IF not it calls Enter
 
 	void Enter(const ExprRec & s);
-	//void Enter(const Symbol & s);
 	// Enters s unconditionally into the symbol table.
-
-	void ExtractExpr(const ExprRec & e, string& s);
-	// Returns an operand representation s for the expression e.
 
 	string ExtractOp(const OpRec& o);
 	// Returns a representation for the operator o.

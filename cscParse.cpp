@@ -23,7 +23,7 @@ Parser::Parser()
 void Parser::SyntaxError(Token t, string msg)
 {
 	cout << t << endl;
-	cout << "Syntax Error: " + msg << endl;
+	cout << "Syntax Error: " + msg << " line number: " << scan.lineNumber << endl;
 	exit(1); // abort on any syntax error
 }
 

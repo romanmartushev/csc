@@ -69,38 +69,9 @@ void CodeGen::Enter(const ExprRec & s)
 	symbolTable.push_back(symbol);
 }
 
-void CodeGen::ExtractExpr(const ExprRec & e, string& s)
-{
-	string t;
-	int k, n;
-
-
-	switch (e.kind)
-	{
-	case ID_EXPR:
-	case INT_LITERAL_EXPR:
-	case FLOAT_LITERAL_EXPR:
-	case TEMP_EXPR:  // operand form: +k(R15)
-		s = e.name;
-		n = 0;
-		while (symbolTable[n].Name != s) n++;
-		k = 2 * n;  // offset: 2 bytes per variable
-		IntToAlpha(k, t);
-		s = "+" + t + "(R15)";
-		break;
-	case LITERAL_EXPR:
-		IntToAlpha(e.val, t);
-		s = "#" + t;
-		break;
-	case SCRIBBLE_LITERAL_EXPR:
-		break;
-	}
-}
-
 string CodeGen::ExtractOp(const OpRec & o)
 {
-	if(o.kind == INT_LITERAL_EXPR)
-	{
+	if(o.kind == INT_LITERAL_EXPR){
 		switch(o.op)
 		{
 			case PLUS:
@@ -111,11 +82,8 @@ string CodeGen::ExtractOp(const OpRec & o)
 				return "IM        ";
 			case DIVIDE:
 				return "ID        ";
-
 		}
-	}
-	else if (o.kind == FLOAT_LITERAL_EXPR)
-	{
+	}else if (o.kind == FLOAT_LITERAL_EXPR){
 		switch(o.op)
 		{
 			case PLUS:
@@ -126,8 +94,11 @@ string CodeGen::ExtractOp(const OpRec & o)
 				return "FM        ";
 			case DIVIDE:
 				return "FD        ";
-
 		}
+	}else{
+			string s = "There was an issue with code.ExtractOp()";
+			cout << s << endl;
+			return s;
 	}
 }
 
@@ -260,7 +231,6 @@ void CodeGen::GenInfix(ExprRec & e1, const OpRec & op, ExprRec & e2, ExprRec& e)
 	}
 	else
 	{
-		//e.kind = TEMP_EXPR;
 		e.name = GetTemp();
 		CheckId(e);
 
@@ -288,7 +258,19 @@ void CodeGen::ProcessVar(ExprRec& e)
 void CodeGen::ProcessLit(ExprRec& e)
 {
 	e.kind = LITERAL_EXPR;
-	e.val = atoi(scan.tokenBuffer.data());
+
+	if(scan.tokenBuffer.find(".") < scan.tokenBuffer.length()
+		|| scan.tokenBuffer.find("e") < scan.tokenBuffer.length()
+		|| scan.tokenBuffer.find("E") < scan.tokenBuffer.length())
+	{
+		e.name = "float";
+		e.val = atof(scan.tokenBuffer.data());
+	}
+	else
+	{
+		e.name = "int";
+		e.val = atoi(scan.tokenBuffer.data());
+	}
 }
 
 void CodeGen::ProcessOp(OpRec& o)
@@ -322,9 +304,9 @@ void CodeGen::WriteExpr(ExprRec & outExpr)
 {
 	string s;
 	GetSymbolValue(outExpr,s);
-	if(outExpr.kind == INT_LITERAL_EXPR || outExpr.kind == LITERAL_EXPR)
+	if(outExpr.kind == INT_LITERAL_EXPR || outExpr.name == "int")
 		Generate("WRI       ", s, "");
-	if(outExpr.kind == FLOAT_LITERAL_EXPR)
+	if(outExpr.kind == FLOAT_LITERAL_EXPR || outExpr.name == "float")
 		Generate("WRF       ", s, "");
 }
 

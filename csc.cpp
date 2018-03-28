@@ -58,7 +58,6 @@ int main(int argc, char* argv[])
 	if (!sourceFile.is_open())
 	{
 		cout << "\n File not found. Compilation aborted!\n\n";
-		//cin.get();
 		exit(1);
 	}
 	outFile.open(outName.data());
@@ -74,7 +73,10 @@ int main(int argc, char* argv[])
 	listFile << " LINE #" << endl;
 
 	parse.SystemGoal();
-
+  /**
+  *This block was used for testing the Scanner, making sure it was
+  *corecctly classifiying the tokens provided.
+  */
 	Token scanToken = scan.GetNextToken();
 	while(scanToken != EOF_SYM){
     string token;
@@ -129,8 +131,6 @@ int main(int argc, char* argv[])
 		<< "\n Successful Compilation\n"
 		<< "\n Object code --> " << outName << endl
 		<< "\n Listing file --> " << listName << endl << endl;
-
-//	cin.get();
 	return 0;
 }
 
