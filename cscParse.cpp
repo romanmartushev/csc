@@ -297,13 +297,11 @@ void Parser::Primary(ExprRec& expr)
 	case FLOAT_LIT:
 	case SCRIBBLE_LIT:
 		Literal();
-
 		code.ProcessLit(expr);
 		break;
 	case ID:
 		Variable(expr);
 		//code.ProcessVar(expr);
-
 		break;
 	case LBANANA:
 		Match(LBANANA);

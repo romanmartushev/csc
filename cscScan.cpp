@@ -197,11 +197,10 @@ Token Scanner::GetNextToken()
 			BufferChar(currentChar);
 			return PLUS_OP;
 		}
-
 		else if (currentChar == '/')
+		{
 			if (sourceFile.peek() == ':') // End multiline comment
 			{
-				cout << "Ending comment" << endl;
 				multilineComment = false;
 			}
 			else if (sourceFile.peek() == '/') // // Integer division
@@ -213,6 +212,7 @@ Token Scanner::GetNextToken()
 				BufferChar(currentChar);
 				return REALDIV_OP;
 			}
+		}
 		else if (currentChar == '-')
 		{
 			BufferChar(currentChar);      // minus operator

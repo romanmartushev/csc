@@ -96,8 +96,8 @@ string CodeGen::ExtractOp(const OpRec & o)
 				return "FD        ";
 		}
 	}else{
-			string s = "There was an issue with code.ExtractOp()";
-			cout << s << endl;
+			string s = "There was an issue with code.ExtractOp()!";
+			cout << "There was an issue with code.ExtractOp()! The o.kind == " << o.kind << ". The o.op == " << o.op << endl;
 			return s;
 	}
 }
@@ -210,7 +210,7 @@ void CodeGen::Finish()
 void CodeGen::GenInfix(ExprRec & e1, const OpRec & op, ExprRec & e2, ExprRec& e)
 {
 	string opnd;
-	if (e1.kind == LITERAL_EXPR && e2.kind == LITERAL_EXPR)
+	if ((e1.name == "int" && e2.name == "int") || (e1.name == "float" && e2.name == "float"))
 	{
 		e.kind = LITERAL_EXPR;
 		switch (op.op)
@@ -257,19 +257,19 @@ void CodeGen::ProcessVar(ExprRec& e)
 
 void CodeGen::ProcessLit(ExprRec& e)
 {
-	e.kind = LITERAL_EXPR;
-
 	if(scan.tokenBuffer.find(".") < scan.tokenBuffer.length()
 		|| scan.tokenBuffer.find("e") < scan.tokenBuffer.length()
 		|| scan.tokenBuffer.find("E") < scan.tokenBuffer.length())
 	{
 		e.name = "float";
 		e.val = atof(scan.tokenBuffer.data());
+		e.kind = FLOAT_LITERAL_EXPR;
 	}
 	else
 	{
 		e.name = "int";
 		e.val = atoi(scan.tokenBuffer.data());
+		e.kind = INT_LITERAL_EXPR;
 	}
 }
 
@@ -315,7 +315,7 @@ void CodeGen::GetSymbolValue(ExprRec& e, string & s)
 	int index;
 	string t;
 
-	if(e.kind == LITERAL_EXPR){
+	if(e.name == "int" || e.name == "float"){
 		IntToAlpha(e.val, t);
 		s = "#" + t;
 	}
