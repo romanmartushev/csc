@@ -375,9 +375,12 @@ void CodeGen::DefineVar(ExprRec & exprRec)
 void CodeGen::InitializeVar(ExprRec & exprRec)
 {
 	ExprRec newExpr;
-	if(exprRec.kind != SCRIBBLE_LITERAL_EXPR && scan.tokenBuffer.length() != 0)
+	if(exprRec.kind != SCRIBBLE_LITERAL_EXPR)
 	{
-		newExpr.val = stof(scan.tokenBuffer);
+		if(scan.tokenBuffer.length() != 0)
+			newExpr.val = stof(scan.tokenBuffer);
+		else
+			newExpr.val = 0;
 		CheckId(exprRec);
 		if(exprRec.kind == FLOAT_LITERAL_EXPR)
 			newExpr.name = "float";

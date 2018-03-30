@@ -2,6 +2,7 @@
 scribble[10] : x := "hello";
 scribble[15] : y := "world";
 
+int : empty;
 int : z := 47;
 int : check := 8;
 int : this := 5;
