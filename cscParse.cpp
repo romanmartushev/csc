@@ -61,15 +61,15 @@ void Parser::ListType()
 	}
 }
 
-void Parser::InitValue()
+void Parser::InitValue(ExprRec& exprRec)
 {
 	switch (NextToken())
 	{
 	case INT_LIT:
 	case FLOAT_LIT:
 	case SCRIBBLE_LIT:
-		Literal();
-		// code.ProcessLit();
+		Literal(exprRec);
+		code.ProcessLit(exprRec);
 		break;
 	case LSTAPLE:
 		Match(LSTAPLE);
@@ -91,7 +91,7 @@ void Parser::VarDecTail(ExprRec& exprRec)
 		Match(COMMA);
 		Match(ID);
 		code.DefineVar(rec);
-		Init();
+		Init(rec);
 		code.InitializeVar(rec);
 		VarDecTail(exprRec);
 		break;
@@ -102,13 +102,13 @@ void Parser::VarDecTail(ExprRec& exprRec)
 	}
 }
 
-void Parser::Init()
+void Parser::Init(ExprRec& exprRec)
 {
 	switch (NextToken())
 	{
 	case ASSIGN_OP:
 		Match(ASSIGN_OP);
-		InitValue();
+		InitValue(exprRec);
 		break;
 	case SEMICOLON:
 	case COMMA:
@@ -122,7 +122,7 @@ void Parser::VarDecList(ExprRec& exprRec)
 {
 	Match(ID);
 	code.DefineVar(exprRec);
-	Init();
+	Init(exprRec);
 	code.InitializeVar(exprRec);
 	VarDecTail(exprRec);
 }
@@ -164,19 +164,20 @@ void Parser::Declaration()
 	Match(SEMICOLON);
 }
 
-void Parser::ScribbleType()
+void Parser::ScribbleType(ExprRec& expr)
 {
 	Match(SCRIBBLE_SYM);
-	SizeSpec();
+	SizeSpec(expr);
 }
 
-void Parser::SizeSpec()
+void Parser::SizeSpec(ExprRec& expr)
 {
 	switch (NextToken())
 	{
 	case LSTAPLE:
 		Match(LSTAPLE);
 		Match(INT_LIT);
+		expr.size = atoi(scan.tokenBuffer.data());
 		Match(RSTAPLE);
 		break;
 	case COLON:
@@ -200,33 +201,36 @@ void Parser::Type(ExprRec& exprRec)
 		break;
 	case INTARRAY_SYM:
 		Match(INTARRAY_SYM);
-		SizeSpec();
+		SizeSpec(exprRec);
 		break;
 	case FLOATARRAY_SYM:
 		Match(FLOATARRAY_SYM);
-		SizeSpec();
+		SizeSpec(exprRec);
 		break;
 	case SCRIBBLE_SYM:
-		ScribbleType();
 		exprRec.kind = SCRIBBLE_LITERAL_EXPR;
+		ScribbleType(exprRec);
 		break;
 	default:
 		SyntaxError(NextToken(), "");
 	}
 }
 
-void Parser::Literal()
+void Parser::Literal(ExprRec& expr)
 {
 	switch (NextToken())
 	{
 	case INT_LIT:
 		Match(INT_LIT);
+		expr.kind = INT_LITERAL_EXPR;
 		break;
 	case FLOAT_LIT:
 		Match(FLOAT_LIT);
+		expr.kind = FLOAT_LITERAL_EXPR;
 		break;
 	case SCRIBBLE_LIT:
 		Match(SCRIBBLE_LIT);
+		expr.kind = SCRIBBLE_LITERAL_EXPR;
 		break;
 	default:
 		SyntaxError(NextToken(), "");
@@ -296,7 +300,7 @@ void Parser::Primary(ExprRec& expr)
 	case INT_LIT:
 	case FLOAT_LIT:
 	case SCRIBBLE_LIT:
-		Literal();
+		Literal(expr);
 		code.ProcessLit(expr);
 		break;
 	case ID:
@@ -683,16 +687,10 @@ void Parser::InputStmt()
 void Parser::AssignStmt()
 {
 	ExprRec expr, result;
-
 	Variable(expr);
-
 	Match(ASSIGN_OP);
-
 	Expression(result);
-
 	code.Assign(expr, result);
-
-
 	Match(SEMICOLON);
 }
 

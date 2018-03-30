@@ -1,17 +1,17 @@
 :: 01InOut.csc
-:: 
+::
 :: Input/output testing.
 
 :A
 
 	int:   x0, x1;
-	float:  y0, y1; 
-	
+	float:  y0, y1;
+
 	:O 5.5, 3;
 	:O 2, 4;
 	:O "\n\n", 1, " \"start\" ", 8.5, "*";
-	:/
 	
+	:/
 	:O "\n\nEnter two integers: ";
 	:N;
 	:I x0, x1;

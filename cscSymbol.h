@@ -17,6 +17,8 @@ public:
 	int NumberOfComponents;
 	float InitialValue;
 
+	string stringValue;
+
 	Symbol(string Name, Type DataType);
 	Symbol(string Name);
 	Symbol();

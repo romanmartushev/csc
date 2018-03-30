@@ -35,11 +35,11 @@ private:
 
 	void ListType();
 
-	void InitValue();
+	void InitValue(ExprRec& exprRec);
 
 	void VarDecTail(ExprRec& exprRec);
 
-	void Init();
+	void Init(ExprRec& exprRec);
 
 	void VarDecList(ExprRec& exprRec);
 
@@ -47,13 +47,13 @@ private:
 
 	void Declaration();
 
-	void ScribbleType();
+	void ScribbleType(ExprRec& expr);
 
-	void SizeSpec();
+	void SizeSpec(ExprRec& expr);
 
 	void Type(ExprRec& exprRec);
 
-	void Literal();
+	void Literal(ExprRec& expr);
 
 	void MultOp();
 

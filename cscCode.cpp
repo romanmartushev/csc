@@ -36,6 +36,10 @@ void CodeGen::CheckId(const ExprRec & s)
 		Enter(s);
 }
 
+void CodeGen::MakeEven(int& number){
+	number = number % 2 == 1 ? number += 1 : number;
+}
+
 void CodeGen::Enter(const ExprRec & s)
 {
 	Symbol symbol;
@@ -57,15 +61,19 @@ void CodeGen::Enter(const ExprRec & s)
 		break;
 		case SCRIBBLE_LITERAL_EXPR:
 			symbol.DataType = Scribble;
-			//TODO: Size
+			symbol.NumberOfComponents = s.size;
+			symbol.stringValue = s.stringVal;
+			symbol.RelativeAddress = stringOffset;
+			stringOffset += symbol.stringValue.length();
+			MakeEven(stringOffset);
 		break;
 	}
 	symbol.Name = s.name;
-	symbol.RelativeAddress = Offset;
-
-	Offset += size;
-	Offset = Offset % 2 == 1 ? Offset += 1 : Offset;
-
+	if(s.kind != SCRIBBLE_LITERAL_EXPR){
+		symbol.RelativeAddress = Offset;
+		Offset += size;
+		MakeEven(Offset);
+	}
 	symbolTable.push_back(symbol);
 }
 
@@ -158,7 +166,6 @@ bool CodeGen::LookUp(const string & s)
 	for (unsigned i = 0; i < symbolTable.size(); i++)
 	if (symbolTable[i].Name == s)
 		return true;
-
 	return false;
 }
 
@@ -177,14 +184,21 @@ void CodeGen::Assign(ExprRec & target, ExprRec & source)
 
 void CodeGen::Finish()
 {
-	string s;
+	int skipSize, memoryUsedByStrings = 0;
 
 	listFile.width(6);
 	listFile << ++scan.lineNumber << "  " << scan.lineBuffer << endl;
 	Generate("HALT      ", "", "");
+	Generate("LABEL     ", "STRINGS", "");
+	for(int i = 0; i < symbolTable.size(); i++)
+	{
+		if(symbolTable[i].DataType == Scribble)
+		{
+			Generate("STRING    ", "\"" + symbolTable[i].stringValue+ "\"", "");
+			skipSize = symbolTable[i].NumberOfComponents - symbolTable[i].stringValue.length();
+		}
+	}
 	Generate("LABEL     ", "VARS", "");
-	IntToAlpha(int(2*(symbolTable.size()+1)), s);
-	Generate("SKIP      ", s, "");
 	outFile.close();
 	listFile << endl << endl;
 	listFile << " _____________________________________________\n";
@@ -233,7 +247,6 @@ void CodeGen::GenInfix(ExprRec & e1, const OpRec & op, ExprRec & e2, ExprRec& e)
 	{
 		e.name = GetTemp();
 		CheckId(e);
-
 		GetSymbolValue(e1,opnd);
 		Generate("LD        ", "R0", opnd);
 		GetSymbolValue(e2,opnd);
@@ -251,25 +264,33 @@ void CodeGen::NewLine()
 void CodeGen::ProcessVar(ExprRec& e)
 {
 	string s;
-	//e.name = scan.tokenBuffer;
 	GetSymbolValue(e, s);
 }
 
 void CodeGen::ProcessLit(ExprRec& e)
 {
-	if(scan.tokenBuffer.find(".") < scan.tokenBuffer.length()
+	if(e.kind == SCRIBBLE_LITERAL_EXPR)
+	{
+		e.stringVal = scan.tokenBuffer.data();
+		if(e.name == ""){
+			e.size = scan.tokenBuffer.length();
+			e.name = GetTemp();
+			CheckId(e);
+		}
+	}
+	else if(scan.tokenBuffer.find(".") < scan.tokenBuffer.length()
 		|| scan.tokenBuffer.find("e") < scan.tokenBuffer.length()
 		|| scan.tokenBuffer.find("E") < scan.tokenBuffer.length())
 	{
-		e.name = "float";
+		if(e.name == "")
+			e.name = "float";
 		e.val = atof(scan.tokenBuffer.data());
-		e.kind = FLOAT_LITERAL_EXPR;
 	}
 	else
 	{
-		e.name = "int";
+		if(e.name == "")
+			e.name = "int";
 		e.val = atoi(scan.tokenBuffer.data());
-		e.kind = INT_LITERAL_EXPR;
 	}
 }
 
@@ -298,6 +319,7 @@ void CodeGen::InputVar(ExprRec & inVar)
 void CodeGen::Start()
 {
 	Generate("LDA       ", "R15", "VARS");
+	Generate("LDA       ", "R14", "STRINGS");
 }
 
 void CodeGen::WriteExpr(ExprRec & outExpr)
@@ -308,6 +330,8 @@ void CodeGen::WriteExpr(ExprRec & outExpr)
 		Generate("WRI       ", s, "");
 	if(outExpr.kind == FLOAT_LITERAL_EXPR || outExpr.name == "float")
 		Generate("WRF       ", s, "");
+	if(outExpr.kind == SCRIBBLE_LITERAL_EXPR)
+		Generate("WRST      ", s, "");
 }
 
 void CodeGen::GetSymbolValue(ExprRec& e, string & s)
@@ -336,7 +360,10 @@ void CodeGen::GetSymbolValue(ExprRec& e, string & s)
 				}
 			}
 		}
-		s = "+" + to_string(symbolTable[index].RelativeAddress) + "(R15)";
+		if(e.kind == SCRIBBLE_LITERAL_EXPR)
+			s = "+" + to_string(symbolTable[index].RelativeAddress) + "(R14)";
+		else
+			s = "+" + to_string(symbolTable[index].RelativeAddress) + "(R15)";
 	}
 }
 
@@ -344,18 +371,26 @@ void CodeGen::GetSymbolValue(ExprRec& e, string & s)
 void CodeGen::DefineVar(ExprRec & exprRec)
 {
 	exprRec.name = scan.tokenBuffer;
-	//Code here
 }
 void CodeGen::InitializeVar(ExprRec & exprRec)
 {
-	//Code here
-
-	if(scan.tokenBuffer.length() != 0)
-		exprRec.val = stof(scan.tokenBuffer);
+	ExprRec newExpr;
+	if(exprRec.kind != SCRIBBLE_LITERAL_EXPR && scan.tokenBuffer.length() != 0)
+	{
+		newExpr.val = stof(scan.tokenBuffer);
+		CheckId(exprRec);
+		if(exprRec.kind == FLOAT_LITERAL_EXPR)
+			newExpr.name = "float";
+		else
+			newExpr.name = "int";
+		Assign(exprRec, newExpr);
+	}
 	else
+	{
 		exprRec.val = 0;
-
-	CheckId(exprRec);
+		CheckId(exprRec);
+	}
+	newExpr.val = exprRec.val;
 }
 void CodeGen::FloatAppend()
 {

@@ -31,17 +31,21 @@ struct ExprRec // information about a constant, variable, or
    ExprKind kind;   // operand type
    string   name;   // used when kind is ID_EXPR or TEMP_EXPR or FLOAT_LITERAL_EXPR or INT_LITERAL_EXPR
    float      val;    // used when kind is ID_EXPR or TEMP_EXPR or FLOAT_LITERAL_EXPR or INT_LITERAL_EXPR
+   int size; //Contains size of scribbles and arrays
+   string stringVal; //Used in scribbles (strings)
 };
 
 class CodeGen
 {
 public:
-	int Offset;
+	int Offset = 0;
+	int stringOffset = 0;
 	CodeGen();
 	// Initializes the code generator;
 
 /* _____________________________________________________________________________
 */
+	void MakeEven(int& number);
 	void GetSymbolValue(ExprRec & e, string & s);
 	// sets the kind of incoming symbol to the previsouly declared type
 	// Returns the offset of a variable in the symbolTable
