@@ -64,7 +64,7 @@ void CodeGen::Enter(const ExprRec & s)
 			symbol.NumberOfComponents = s.size;
 			symbol.stringValue = s.stringVal;
 			symbol.RelativeAddress = stringOffset;
-			stringOffset += symbol.stringValue.length();
+			stringOffset += symbol.NumberOfComponents;
 			MakeEven(stringOffset);
 		break;
 	}
@@ -196,13 +196,14 @@ void CodeGen::Finish()
 		{
 			Generate("STRING    ", "\"" + symbolTable[i].stringValue+ "\"", "");
 			skipSize = symbolTable[i].NumberOfComponents - symbolTable[i].stringValue.length();
+			Generate("SKIP      ","","");
 		}
 	}
 	Generate("LABEL     ", "VARS", "");
 	outFile.close();
 	listFile << endl << endl;
 	listFile << " _____________________________________________\n";
-	listFile << " <><><><>   S Y M B O L   T A B L E   <><><><>\n"
+	listFile << " <><><><>  V A R I A B L E   T A B L E   <><><><>\n"
 		<< endl;
 	listFile << " Relative" << endl;
 	listFile << " Address      Identifier      Value      Type" << endl;
@@ -210,9 +211,31 @@ void CodeGen::Finish()
 		<< endl;
 	for (unsigned i = 0; i < symbolTable.size(); i++)
 	{
-		listFile.width(7);
-		listFile << symbolTable[i].RelativeAddress << "       "<< symbolTable[i].Name << "               "
-		<< symbolTable[i].InitialValue << "          " << symbolTable[i].DataType << endl;
+		if(symbolTable[i].DataType != Scribble)
+		{
+			listFile.width(7);
+			listFile << symbolTable[i].RelativeAddress << "       "<< symbolTable[i].Name << "               "
+			<< symbolTable[i].InitialValue << "          " << symbolTable[i].DataType << endl;
+		}
+	}
+	listFile << " _____________________________________________"
+		<< endl;
+	listFile << endl;
+	listFile << " _____________________________________________\n";
+	listFile << " <><><><>  S C R I B B L E   T A B L E   <><><><>\n"
+		<< endl;
+	listFile << " Relative" << endl;
+	listFile << " Address      Identifier      Value      Type" << endl;
+	listFile << " --------     ----------      -----      -----"
+		<< endl;
+	for (unsigned i = 0; i < symbolTable.size(); i++)
+	{
+		if(symbolTable[i].DataType == Scribble)
+		{
+			listFile.width(7);
+			listFile << symbolTable[i].RelativeAddress << "       "<< symbolTable[i].Name << "               "
+			<< symbolTable[i].InitialValue << "          " << symbolTable[i].DataType << endl;
+		}
 	}
 	listFile << " _____________________________________________"
 		<< endl;
@@ -273,7 +296,8 @@ void CodeGen::ProcessLit(ExprRec& e)
 	{
 		e.stringVal = scan.tokenBuffer.data();
 		if(e.name == ""){
-			e.size = scan.tokenBuffer.length();
+			if(e.size == 0)
+				e.size = scan.tokenBuffer.length();
 			e.name = GetTemp();
 			CheckId(e);
 		}
