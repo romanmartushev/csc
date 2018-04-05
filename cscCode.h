@@ -31,7 +31,7 @@ struct ExprRec // information about a constant, variable, or
    ExprKind kind;   // operand type
    string   name;   // used when kind is ID_EXPR or TEMP_EXPR or FLOAT_LITERAL_EXPR or INT_LITERAL_EXPR
    float      val;    // used when kind is ID_EXPR or TEMP_EXPR or FLOAT_LITERAL_EXPR or INT_LITERAL_EXPR
-   int size; //Contains size of scribbles and arrays
+   int size = 0; //Contains size of scribbles and arrays
    string stringVal; //Used in scribbles (strings)
 };
 

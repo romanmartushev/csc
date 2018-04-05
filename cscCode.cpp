@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 using namespace std;
 
 extern ifstream sourceFile;
@@ -64,7 +65,25 @@ void CodeGen::Enter(const ExprRec & s)
 			symbol.NumberOfComponents = s.size;
 			symbol.stringValue = s.stringVal;
 			symbol.RelativeAddress = stringOffset;
-			stringOffset += symbol.NumberOfComponents;
+			vector<int> characterLocations;
+	    for(int i = 0; i < s.stringVal.length(); i++){
+        if(s.stringVal[i] == ':'){
+					if(isdigit(s.stringVal[i+1]) && isdigit(s.stringVal[i+2]) && isdigit(s.stringVal[i+3])){
+						characterLocations.push_back(i);
+					}
+					if(s.stringVal[i+1] == ':'){
+						characterLocations.push_back(i);
+						i++;
+					}
+				}
+			}
+			if(characterLocations.size() > 0){
+				cout << characterLocations.size() << endl;
+				stringOffset += s.size - characterLocations.size()*2;
+			}
+			else{
+				stringOffset += s.size;
+			}
 			MakeEven(stringOffset);
 		break;
 	}
@@ -194,12 +213,26 @@ void CodeGen::Finish()
 	{
 		if(symbolTable[i].DataType == Scribble)
 		{
-			Generate("STRING    ", "\"" + symbolTable[i].stringValue+ "\"", "");
-			skipSize = symbolTable[i].NumberOfComponents - symbolTable[i].stringValue.length();
-			Generate("SKIP      ","","");
+			Generate("STRING    ", "\"" + symbolTable[i].stringValue + "\"", "");
+			if(symbolTable[i].stringValue.length() != symbolTable[i].NumberOfComponents){
+				skipSize = (symbolTable[i].NumberOfComponents - symbolTable[i].stringValue.length()-1);
+				MakeEven(skipSize);
+				Generate("SKIP      ", to_string(skipSize), "");
+			}
 		}
 	}
 	Generate("LABEL     ", "VARS", "");
+	for(int i = 0; i < symbolTable.size(); i++)
+	{
+		if(symbolTable[i].DataType == Int)
+		{
+			Generate("INT    ",to_string(symbolTable[i].InitialValue), "");
+		}
+		if(symbolTable[i].DataType == Float)
+		{
+			Generate("REAL    ",to_string(symbolTable[i].InitialValue), "");
+		}
+	}
 	outFile.close();
 	listFile << endl << endl;
 	listFile << " _____________________________________________\n";
@@ -306,9 +339,11 @@ void CodeGen::ProcessLit(ExprRec& e)
 		|| scan.tokenBuffer.find("e") < scan.tokenBuffer.length()
 		|| scan.tokenBuffer.find("E") < scan.tokenBuffer.length())
 	{
-		if(e.name == "")
-			e.name = "float";
 		e.val = atof(scan.tokenBuffer.data());
+		if(e.name == ""){
+			e.name = GetTemp();
+			CheckId(e);
+		}
 	}
 	else
 	{
@@ -363,9 +398,11 @@ void CodeGen::GetSymbolValue(ExprRec& e, string & s)
 	int index;
 	string t;
 
-	if(e.name == "int" || e.name == "float"){
+	if(e.name == "int"){
 		IntToAlpha(e.val, t);
 		s = "#" + t;
+	}else if(e.name == "float"){
+		s = "#" + to_string(e.val);
 	}
 	else{
 		for(int i = 0 ; i < symbolTable.size(); i++){

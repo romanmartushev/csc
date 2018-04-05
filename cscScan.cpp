@@ -275,16 +275,30 @@ Token Scanner::GetNextToken()
 					if( currentChar == '\\')
 					{
 						if(c == '"'){
-							NextChar();
+							BufferChar(':');
+							currentChar = NextChar();
+							c = sourceFile.peek();
 							BufferChar('"');
 						}
+						else if (c == 'n'){
+							BufferChar(':');
+							BufferChar('0');
+							BufferChar('1');
+							BufferChar('0');
+							currentChar = NextChar();
+							c = sourceFile.peek();
+						}
+						else{
+							BufferChar('\\');
+						}
 					}
-					if(currentChar == ':')
+					else if(currentChar == ':')
 					{
+						BufferChar(':');
 						BufferChar(':');
 					}
 
-					BufferChar(currentChar);
+					else BufferChar(currentChar);
 
 				}
 				else
@@ -292,7 +306,6 @@ Token Scanner::GetNextToken()
 					break;
 				}
 			}
-			BufferChar(char(0));
 			return SCRIBBLE_LIT;
 		}
 		else

@@ -1,14 +1,9 @@
 :A
 :: decleration of variables
 
-int : x;
-float : y;
+::int : x := 3;
+float : y := 5.5;
 
-:O 0;
-:N;
-:I x,y;
-:N;
-:O x,y;
-
+:O y;
 
 :Z
