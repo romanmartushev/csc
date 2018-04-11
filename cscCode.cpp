@@ -78,7 +78,6 @@ void CodeGen::Enter(const ExprRec & s)
 				}
 			}
 			if(characterLocations.size() > 0){
-				cout << characterLocations.size() << endl;
 				stringOffset += s.size - characterLocations.size()*2;
 			}
 			else{
@@ -195,6 +194,25 @@ bool CodeGen::LookUp(const string & s)
 void CodeGen::Assign(ExprRec & target, ExprRec & source)
 {
 	string s;
+
+
+	//Used when trying to assign an integer to a float variable
+	/*if(target.kind == FLOAT_LITERAL_EXPR && source.kind == INT_LITERAL_EXPR)
+	{
+		source.name = GetTemp();
+		CheckId(source);
+
+		for(int i = 0; i < symbolTable.size(); i++)
+		{
+			if(symbolTable[i].Name == source.name)
+			{
+				symbolTable[i].DataType = Float;
+				break;
+			}
+		}
+	}*/
+
+
 	GetSymbolValue(source,s);
 	Generate("LD        ", "R0", s);
 	GetSymbolValue(target,s);
@@ -224,13 +242,14 @@ void CodeGen::Finish()
 	Generate("LABEL     ", "VARS", "");
 	for(int i = 0; i < symbolTable.size(); i++)
 	{
-		if(symbolTable[i].DataType == Int)
+		/*if(symbolTable[i].DataType == Int)
 		{
 			Generate("INT    ",to_string(symbolTable[i].InitialValue), "");
-		}
+		}*/
+
 		if(symbolTable[i].DataType == Float)
 		{
-			Generate("REAL    ",to_string(symbolTable[i].InitialValue), "");
+			Generate("REAL      ",to_string(symbolTable[i].InitialValue), "");
 		}
 	}
 	outFile.close();
@@ -277,7 +296,7 @@ void CodeGen::Finish()
 	listFile.close();
 }
 
-void CodeGen::GenInfix(ExprRec & e1, const OpRec & op, ExprRec & e2, ExprRec& e)
+void CodeGen::GenInfix(ExprRec & e1, OpRec & op, ExprRec & e2, ExprRec& e)
 {
 	string opnd;
 	if ((e1.name == "int" && e2.name == "int") || (e1.name == "float" && e2.name == "float"))
@@ -303,12 +322,47 @@ void CodeGen::GenInfix(ExprRec & e1, const OpRec & op, ExprRec & e2, ExprRec& e)
 	{
 		e.name = GetTemp();
 		CheckId(e);
+		e.val = 0;
 		GetSymbolValue(e1,opnd);
-		Generate("LD        ", "R0", opnd);
+
+		if(e1.kind == FLOAT_LITERAL_EXPR || e2.kind == FLOAT_LITERAL_EXPR)
+			op.kind = FLOAT_LITERAL_EXPR;
+		else
+			op.kind = INT_LITERAL_EXPR;
+
+		if(e1.name == "int" && (e1.kind == FLOAT_LITERAL_EXPR || e2.kind == FLOAT_LITERAL_EXPR))
+			Generate("FLT       ", "R0", opnd);
+		else
+			Generate("LD        ", "R0", opnd);
+
 		GetSymbolValue(e2,opnd);
-		Generate(ExtractOp(op), "R0", opnd);
+
+		string operation = ExtractOp(op);
+
+		if(e2.name == "int" && (e1.kind == FLOAT_LITERAL_EXPR || e2.kind == FLOAT_LITERAL_EXPR)){
+			Generate("FLT       ", "R1", opnd);
+			Generate(operation, "R0", "R1");
+		}
+		else
+			Generate(operation, "R0", opnd);
+			
 		GetSymbolValue(e,opnd);
 		Generate("STO       ", "R0", opnd);
+	}
+}
+
+//Decides if the additional Int to Float method is needed. (Needed for all REAL number math)
+void CodeGen::FloatGenInfix(const OpRec& op, const string& opnd)
+{
+	string operation = ExtractOp(op);
+	if(operation[0] == 'F')
+	{
+		Generate("FLT       ", "R1", opnd);
+		Generate(operation, "R0", "R1");
+	}
+	else
+	{
+		Generate(operation, "R0", opnd);
 	}
 }
 
@@ -328,7 +382,8 @@ void CodeGen::ProcessLit(ExprRec& e)
 	if(e.kind == SCRIBBLE_LITERAL_EXPR)
 	{
 		e.stringVal = scan.tokenBuffer.data();
-		if(e.name == ""){
+		if(e.name == "")
+		{
 			if(e.size == 0)
 				e.size = scan.tokenBuffer.length();
 			e.name = GetTemp();
@@ -339,8 +394,10 @@ void CodeGen::ProcessLit(ExprRec& e)
 		|| scan.tokenBuffer.find("e") < scan.tokenBuffer.length()
 		|| scan.tokenBuffer.find("E") < scan.tokenBuffer.length())
 	{
+
 		e.val = atof(scan.tokenBuffer.data());
-		if(e.name == ""){
+		if(e.name == "")
+		{
 			e.name = GetTemp();
 			CheckId(e);
 		}
@@ -446,8 +503,10 @@ void CodeGen::InitializeVar(ExprRec & exprRec)
 		if(exprRec.kind == FLOAT_LITERAL_EXPR)
 			newExpr.name = "float";
 		else
+		{
 			newExpr.name = "int";
-		Assign(exprRec, newExpr);
+			Assign(exprRec, newExpr);
+		}
 	}
 	else
 	{

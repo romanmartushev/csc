@@ -265,10 +265,9 @@ void Parser::FactorTail(ExprRec& expr)
 	case MULT_OP:
 	case REALDIV_OP:
 	case INTEGERDIV_OP:
-			leftOperand.kind = expr.kind;
-			leftOperand.val = expr.val;
-			leftOperand.name= expr.name;
-		op.kind = expr.kind;
+		leftOperand.kind = expr.kind;
+		leftOperand.val = expr.val;
+		leftOperand.name = expr.name;
 		MultOp();
 		code.ProcessOp(op);
 		Primary(rightOperand);
@@ -340,10 +339,9 @@ void Parser::ExprTail(ExprRec& expr)
 	{
 	case PLUS_OP:
 	case MINUS_OP:
-			leftOperand.kind = expr.kind;
-			leftOperand.val = expr.val;
-			leftOperand.name= expr.name;
-		op.kind = expr.kind;
+		leftOperand.kind = expr.kind;
+		leftOperand.val = expr.val;
+		leftOperand.name = expr.name;
 		AddOp();
 		code.ProcessOp(op);
 		Factor(rightOperand);

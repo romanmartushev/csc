@@ -46,6 +46,8 @@ public:
 /* _____________________________________________________________________________
 */
 	void MakeEven(int& number);
+	void FloatGenInfix(const OpRec& op, const string& opnd);
+
 	void GetSymbolValue(ExprRec & e, string & s);
 	// sets the kind of incoming symbol to the previsouly declared type
 	// Returns the offset of a variable in the symbolTable
@@ -56,7 +58,7 @@ public:
 	void Finish();
 	// Generates code to finish the program.
 
-	void GenInfix(ExprRec & e1, const OpRec & op, ExprRec & e2, ExprRec& e);
+	void GenInfix(ExprRec & e1, OpRec & op, ExprRec & e2, ExprRec& e);
 	// Produces the assembly code for an infix operation.
 
 	void NewLine();
