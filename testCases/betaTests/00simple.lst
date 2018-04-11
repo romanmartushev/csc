@@ -1,0 +1,47 @@
+
+
+ : S C O P Y   C O M P I L E R   L I S T I N G
+
+ Generated code is SAM assembly language for
+ the MACC2 virtual computer.
+ ___________________________________________
+
+ April 06, 2018 at 08:43 AM
+ Source file: testCases/betaTests/00simple.sy
+
+ LINE #
+     1  ::  00simple.csc
+     2  :://  One of the simplest MNC programs possible.
+     3  
+                    LDA       R15,VARS
+                    LDA       R14,STRINGS
+     4  :A
+                    LD        R0,#0
+                    STO       R0,+0(R15)
+     5  int : x;
+                    WRI       #8
+     6  :O 8;
+     7  :Z
+                    HALT      
+                    LABEL     STRINGS
+                    LABEL     VARS
+
+
+ _____________________________________________
+ <><><><>  V A R I A B L E   T A B L E   <><><><>
+
+ Relative
+ Address      Identifier      Value      Type
+ --------     ----------      -----      -----
+      0       x               1.15243e-41          1
+ _____________________________________________
+
+ _____________________________________________
+ <><><><>  S C R I B B L E   T A B L E   <><><><>
+
+ Relative
+ Address      Identifier      Value      Type
+ --------     ----------      -----      -----
+ _____________________________________________
+
+ Normal successful compilation.

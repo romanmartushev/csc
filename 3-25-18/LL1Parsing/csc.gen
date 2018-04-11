@@ -1,0 +1,733 @@
+
+
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ~~  :Scopy Grammar 2018 Statistics  ~~
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   90 productions
+   42 terminal symbols
+   50 nonterminal symbols
+   28 semantic (action) symbols
+
+  The longest right hand side contains 12 symbols.
+  The shortest right hand side contains 0 symbols.
+
+  There are 200 non-zero parse table entries.
+
+
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ~~  :Scopy Grammar 2018 Augmented Productions  ~~
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+     1.   <<goal>>          --> <program> "$eof$"
+
+     2.   <program>         --> [Start] ":A" <dec_list> <stmt_list> ":Z" [End]
+
+     3.   <stmt_list>       --> <statement> <stmt_tail>
+
+     4.   <stmt_tail>       --> <statement> <stmt_tail>
+
+     5.   <stmt_tail>       --> ""
+
+     6.   <statement>       --> <simple_stmt>
+
+     7.   <statement>       --> <struct_stmt>
+
+     8.   <simple_stmt>     --> <assign_stmt>
+
+     9.   <simple_stmt>     --> <input_stmt>
+
+    10.   <simple_stmt>     --> <output_stmt>
+
+    11.   <simple_stmt>     --> <newline_stmt>
+
+    12.   <simple_stmt>     --> <break_stmt>
+
+    13.   <assign_stmt>     --> <variable> ":=" <expression> [Assign] ";"
+
+    14.   <input_stmt>      --> ":I" <var_list> ";"
+
+    15.   <var_list>        --> <variable> [InputVar] <var_list_tail>
+
+    16.   <var_list_tail>   --> "," <variable> [InputVar] <var_list_tail>
+
+    17.   <var_list_tail>   --> ""
+
+    18.   <variable>        --> "ID" <variable_tail> [ProcessVar]
+
+    19.   <variable_tail>   --> "[" <expression> "]"
+
+    20.   <variable_tail>   --> ""
+
+    21.   <output_stmt>     --> ":O" <item_list> ";"
+
+    22.   <item_list>       --> <expression> [WriteExpr] <item_list_tail>
+
+    23.   <item_list_tail>  --> "," <expression> [WriteExpr] <item_list_tail>
+
+    24.   <item_list_tail>  --> ""
+
+    25.   <newline_stmt>    --> ":N" [NewLine] ";"
+
+    26.   <break_stmt>      --> ":B" [Break] ";"
+
+    27.   <struct_stmt>     --> <if_stmt>
+
+    28.   <struct_stmt>     --> <while_stmt>
+
+    29.   <struct_stmt>     --> <do_stmt>
+
+    30.   <struct_stmt>     --> <for_stmt>
+
+    31.   <if_stmt>         --> ":?" "(" <condition> ")" [ProcessIf] <stmt_list>
+                                       <else_clause> ":." [IfEnd]
+
+    32.   <else_clause>     --> ":!" [ProcessElse] <stmt_list>
+
+    33.   <else_clause>     --> ""
+
+    34.   <do_stmt>         --> ":D" [DoLoopBegin] <stmt_list> ":U" "(" <condition>
+                                       ")" [DoLoopEnd] ";"
+
+    35.   <while_stmt>      --> ":W" "(" <condition> ")" [WhileBegin] <stmt_list> ":."
+                                       [WhileEnd]
+
+    36.   <for_stmt>        --> ":F" "(" <for_assign> ";" <condition> ";"
+                                       [ForUpdate] <for_assign> ")" <stmt_list>
+                                       ":." [ForEnd]
+
+    37.   <for_assign>      --> <variable> ":=" <expression> [ForAssign]
+
+    38.   <int_list>        --> "INT_LIT" [IntAppend] <int_list_tail>
+
+    39.   <int_list_tail>   --> "," "INT_LIT" [IntAppend] <int_list_tail>
+
+    40.   <int_list_tail>   --> ""
+
+    41.   <float_list>      --> "FLOAT_LIT" [FloatAppend] <float_list_tail>
+
+    42.   <float_list_tail> --> "," "FLOAT_LIT" [FloatAppend] <float_list_tail>
+
+    43.   <float_list_tail> --> ""
+
+    44.   <condition>       --> <expression> <cond_tail> [SetCondition]
+
+    45.   <cond_tail>       --> <rel_op> [ProcessOp] <expression>
+
+    46.   <cond_tail>       --> ""
+
+    47.   <expression>      --> <factor> <expr_tail>
+
+    48.   <expr_tail>       --> <add_op> [ProcessOp] <factor> [GenInfix] <expr_tail>
+
+    49.   <expr_tail>       --> ""
+
+    50.   <factor>          --> <primary> <factor_tail>
+
+    51.   <factor_tail>     --> <mult_op> [ProcessOp] <primary> [GenInfix]
+                                       <factor_tail>
+
+    52.   <factor_tail>     --> ""
+
+    53.   <primary>         --> <literal> [ProcessLit]
+
+    54.   <primary>         --> <variable> [ProcessVar]
+
+    55.   <primary>         --> "(" <expression> ")"
+
+    56.   <type>            --> "int"
+
+    57.   <type>            --> "float"
+
+    58.   <type>            --> "intarray" <size_spec>
+
+    59.   <type>            --> "floatarray" <size_spec>
+
+    60.   <type>            --> <scribble_type>
+
+    61.   <scribble_type>   --> "scribble" <size_spec>
+
+    62.   <size_spec>       --> "[" "INT_LIT" "]"
+
+    63.   <size_spec>       --> ""
+
+    64.   <literal>         --> "INT_LIT"
+
+    65.   <literal>         --> "FLOAT_LIT"
+
+    66.   <literal>         --> "SCRIBBLE_LIT"
+
+    67.   <mult_op>         --> "*"
+
+    68.   <mult_op>         --> "/"
+
+    69.   <mult_op>         --> "//"
+
+    70.   <add_op>          --> "+"
+
+    71.   <add_op>          --> "-"
+
+    72.   <rel_op>          --> "<"
+
+    73.   <rel_op>          --> "<="
+
+    74.   <rel_op>          --> ">"
+
+    75.   <rel_op>          --> ">="
+
+    76.   <rel_op>          --> "=="
+
+    77.   <rel_op>          --> "!="
+
+    78.   <dec_list>        --> <declaration> <dec_tail>
+
+    79.   <dec_tail>        --> <declaration> <dec_tail>
+
+    80.   <dec_tail>        --> ""
+
+    81.   <declaration>     --> <type> ":" <var_dec_list> ";"
+
+    82.   <var_dec_list>    --> "ID" [DefineVar] <init> [InitializeVar] <var_dec_tail>
+
+    83.   <var_dec_tail>    --> "," "ID" [DefineVar] <init> [InitializeVar]
+                                       <var_dec_tail>
+
+    84.   <var_dec_tail>    --> ""
+
+    85.   <init>            --> ":=" <init_value>
+
+    86.   <init>            --> ""
+
+    87.   <init_value>      --> <literal> [ProcessLit]
+
+    88.   <init_value>      --> "[" <list_type> "]"
+
+    89.   <list_type>       --> <float_list>
+
+    90.   <list_type>       --> <int_list>
+
+
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ~~  :Scopy Grammar 2018 Terminal Symbols  ~~
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    38.   "!="               rhs:   77
+     1.   "$eof$"            rhs:    1
+    22.   "("                rhs:   31   34   35   36   55
+    23.   ")"                rhs:   31   34   35   36   55
+    30.   "*"                rhs:   67
+    28.   "+"                rhs:   70
+    26.   ","                rhs:   16   23   39   42   83
+    29.   "-"                rhs:   71
+    31.   "/"                rhs:   68
+    32.   "//"               rhs:   69
+    24.   ":"                rhs:   81
+    18.   ":!"               rhs:   32
+    19.   ":."               rhs:   31   35   36
+    27.   ":="               rhs:   13   37   85
+    17.   ":?"               rhs:   31
+     2.   ":A"               rhs:    2
+     3.   ":B"               rhs:   26
+     4.   ":D"               rhs:   34
+     5.   ":F"               rhs:   36
+     8.   ":I"               rhs:   14
+    11.   ":N"               rhs:   25
+    12.   ":O"               rhs:   21
+    14.   ":U"               rhs:   34
+    15.   ":W"               rhs:   35
+    16.   ":Z"               rhs:    2
+    25.   ";"                rhs:   13   14   21   25   26   34 2*36   81
+    33.   "<"                rhs:   72
+    34.   "<="               rhs:   73
+    37.   "=="               rhs:   76
+    35.   ">"                rhs:   74
+    36.   ">="               rhs:   75
+    41.   "FLOAT_LIT"        rhs:   41   42   65
+    39.   "ID"               rhs:   18   82   83
+    40.   "INT_LIT"          rhs:   38   39   62   64
+    42.   "SCRIBBLE_LIT"     rhs:   66
+    20.   "["                rhs:   19   62   88
+    21.   "]"                rhs:   19   62   88
+     6.   "float"            rhs:   57
+     7.   "floatarray"       rhs:   59
+     9.   "int"              rhs:   56
+    10.   "intarray"         rhs:   58
+    13.   "scribble"         rhs:   61
+
+
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ~~  :Scopy Grammar 2018 Nonterminal Symbols  ~~
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    43.   <<goal>>          *   lhs:    1
+    78.   <add_op>              lhs:   70   71  rhs:   48
+    51.   <assign_stmt>         lhs:   13  rhs:    8
+    55.   <break_stmt>          lhs:   26  rhs:   12
+    74.   <cond_tail>           lhs:   45   46  rhs:   44
+    67.   <condition>           lhs:   44  rhs:   31   34   35   36
+    45.   <dec_list>            lhs:   78  rhs:    2
+    87.   <dec_tail>            lhs:   79   80  rhs:   78   79
+    86.   <declaration>         lhs:   81  rhs:   78   79
+    65.   <do_stmt>             lhs:   34  rhs:   29
+    68.   <else_clause>         lhs:   32   33  rhs:   31
+    77.   <expr_tail>           lhs:   48   49  rhs:   47   48
+    57.   <expression>          lhs:   47  rhs:   13   19   22   23   37   44   45
+                                 55
+    76.   <factor>              lhs:   50  rhs:   47   48
+    80.   <factor_tail>         lhs:   51   52  rhs:   50   51
+    72.   <float_list>          lhs:   41  rhs:   89
+    73.   <float_list_tail>     lhs:   42   43  rhs:   41   42
+    69.   <for_assign>          lhs:   37  rhs: 2*36
+    66.   <for_stmt>            lhs:   36  rhs:   30
+    63.   <if_stmt>             lhs:   31  rhs:   27
+    89.   <init>                lhs:   85   86  rhs:   82   83
+    91.   <init_value>          lhs:   87   88  rhs:   85
+    52.   <input_stmt>          lhs:   14  rhs:    9
+    70.   <int_list>            lhs:   38  rhs:   90
+    71.   <int_list_tail>       lhs:   39   40  rhs:   38   39
+    61.   <item_list>           lhs:   22  rhs:   21
+    62.   <item_list_tail>      lhs:   23   24  rhs:   22   23
+    92.   <list_type>           lhs:   89   90  rhs:   88
+    82.   <literal>             lhs:   64   65   66  rhs:   53   87
+    81.   <mult_op>             lhs:   67   68   69  rhs:   51
+    54.   <newline_stmt>        lhs:   25  rhs:   11
+    53.   <output_stmt>         lhs:   21  rhs:   10
+    79.   <primary>             lhs:   53   54   55  rhs:   50   51
+    44.   <program>             lhs:    2  rhs:    1
+    75.   <rel_op>              lhs:   72   73   74   75   76   77  rhs:   45
+    85.   <scribble_type>       lhs:   61  rhs:   60
+    49.   <simple_stmt>         lhs:    8    9   10   11   12  rhs:    6
+    84.   <size_spec>           lhs:   62   63  rhs:   58   59   61
+    47.   <statement>           lhs:    6    7  rhs:    3    4
+    46.   <stmt_list>           lhs:    3  rhs:    2   31   32   34   35   36
+    48.   <stmt_tail>           lhs:    4    5  rhs:    3    4
+    50.   <struct_stmt>         lhs:   27   28   29   30  rhs:    7
+    83.   <type>                lhs:   56   57   58   59   60  rhs:   81
+    88.   <var_dec_list>        lhs:   82  rhs:   81
+    90.   <var_dec_tail>        lhs:   83   84  rhs:   82   83
+    58.   <var_list>            lhs:   15  rhs:   14
+    59.   <var_list_tail>       lhs:   16   17  rhs:   15   16
+    56.   <variable>            lhs:   18  rhs:   13   15   16   37   54
+    60.   <variable_tail>       lhs:   19   20  rhs:   18
+    64.   <while_stmt>          lhs:   35  rhs:   28
+
+
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ~~  :Scopy Grammar 2018 Semantic Symbols  ~~
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+     4.   [Assign]            rhs:   13
+     6.   [Break]             rhs:   26
+    25.   [DefineVar]         rhs:   82   83
+    13.   [DoLoogEnd]       
+    12.   [DoLoopBegin]       rhs:   34
+    28.   [DoLoopEnd]         rhs:   34
+    27.   [End]               rhs:    2
+     2.   [Finish]          
+    20.   [FloatAppend]       rhs:   41   42
+    18.   [ForAssign]         rhs:   37
+    17.   [ForEnd]            rhs:   36
+    16.   [ForUpdate]         rhs:   36
+    23.   [GenInfix]          rhs:   48   51
+    11.   [IfEnd]             rhs:   31
+    26.   [InitializeVar]     rhs:   82   83
+     5.   [InputVar]          rhs:   15   16
+    19.   [IntAppend]         rhs:   38   39
+     7.   [NewLine]           rhs:   25
+    10.   [ProcessElse]       rhs:   32
+     9.   [ProcessIf]         rhs:   31
+    24.   [ProcessLit]        rhs:   53   87
+    21.   [ProcessOp]         rhs:   45   48   51
+     3.   [ProcessVar]        rhs:   18   54
+    22.   [SetCondition]      rhs:   44
+     1.   [Start]             rhs:    2
+    14.   [WhileBegin]        rhs:   35
+    15.   [WhileEnd]          rhs:   35
+     8.   [WriteExpr]         rhs:   22   23
+
+
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ~~  :Scopy Grammar 2018 First Sets  ~~
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  First( <<goal>> )          = [ ":A" ]
+  First( <add_op> )          = [ "-", "+" ]
+  First( <assign_stmt> )     = [ "ID" ]
+  First( <break_stmt> )      = [ ":B" ]
+  First( <cond_tail> )       = [ "<", "<=", ">", ">=", "==", "!=", "" ]
+  First( <condition> )       = [ "SCRIBBLE_LIT", "FLOAT_LIT", "INT_LIT", "ID", "(" ]
+  First( <dec_list> )        = [ "scribble", "floatarray", "intarray", "float", "int" ]
+  First( <dec_tail> )        = [ "scribble", "floatarray", "intarray", "float", "int", "" ]
+  First( <declaration> )     = [ "scribble", "int", "float", "intarray", "floatarray" ]
+  First( <do_stmt> )         = [ ":D" ]
+  First( <else_clause> )     = [ "", ":!" ]
+  First( <expr_tail> )       = [ "+", "-", "" ]
+  First( <expression> )      = [ "ID", "INT_LIT", "FLOAT_LIT", "SCRIBBLE_LIT", "(" ]
+  First( <factor> )          = [ "SCRIBBLE_LIT", "FLOAT_LIT", "INT_LIT", "ID", "(" ]
+  First( <factor_tail> )     = [ "*", "/", "//", "" ]
+  First( <float_list> )      = [ "FLOAT_LIT" ]
+  First( <float_list_tail> ) = [ "", "," ]
+  First( <for_assign> )      = [ "ID" ]
+  First( <for_stmt> )        = [ ":F" ]
+  First( <if_stmt> )         = [ ":?" ]
+  First( <init> )            = [ "", ":=" ]
+  First( <init_value> )      = [ "INT_LIT", "FLOAT_LIT", "SCRIBBLE_LIT", "[" ]
+  First( <input_stmt> )      = [ ":I" ]
+  First( <int_list> )        = [ "INT_LIT" ]
+  First( <int_list_tail> )   = [ "", "," ]
+  First( <item_list> )       = [ "SCRIBBLE_LIT", "FLOAT_LIT", "INT_LIT", "ID", "(" ]
+  First( <item_list_tail> )  = [ "", "," ]
+  First( <list_type> )       = [ "INT_LIT", "FLOAT_LIT" ]
+  First( <literal> )         = [ "SCRIBBLE_LIT", "FLOAT_LIT", "INT_LIT" ]
+  First( <mult_op> )         = [ "//", "/", "*" ]
+  First( <newline_stmt> )    = [ ":N" ]
+  First( <output_stmt> )     = [ ":O" ]
+  First( <primary> )         = [ "ID", "INT_LIT", "FLOAT_LIT", "SCRIBBLE_LIT", "(" ]
+  First( <program> )         = [ ":A" ]
+  First( <rel_op> )          = [ "!=", "==", ">=", ">", "<=", "<" ]
+  First( <scribble_type> )   = [ "scribble" ]
+  First( <simple_stmt> )     = [ ":B", ":N", ":O", ":I", "ID" ]
+  First( <size_spec> )       = [ "", "[" ]
+  First( <statement> )       = [ ":?", ":W", ":D", ":F", "ID", ":I", ":O", ":N", ":B" ]
+  First( <stmt_list> )       = [ ":F", ":D", ":W", ":?", ":B", ":N", ":O", ":I", "ID" ]
+  First( <stmt_tail> )       = [ ":F", ":D", ":W", ":?", ":B", ":N", ":O", ":I", "ID", "" ]
+  First( <struct_stmt> )     = [ ":F", ":D", ":W", ":?" ]
+  First( <type> )            = [ "scribble", "floatarray", "intarray", "float", "int" ]
+  First( <var_dec_list> )    = [ "ID" ]
+  First( <var_dec_tail> )    = [ "", "," ]
+  First( <var_list> )        = [ "ID" ]
+  First( <var_list_tail> )   = [ "", "," ]
+  First( <variable> )        = [ "ID" ]
+  First( <variable_tail> )   = [ "", "[" ]
+  First( <while_stmt> )      = [ ":W" ]
+
+
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ~~  :Scopy Grammar 2018 Follow Sets  ~~
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Follow( <<goal>> )          = [ "$eof$" ]
+  Follow( <add_op> )          = [ "(", "ID", "INT_LIT", "FLOAT_LIT", "SCRIBBLE_LIT" ]
+  Follow( <assign_stmt> )     = [ ":U", ":.", ":!", ":Z", "ID", ":I", ":O", ":N", ":B", ":?",
+                                   ":W", ":D", ":F" ]
+  Follow( <break_stmt> )      = [ ":U", ":.", ":!", ":Z", "ID", ":I", ":O", ":N", ":B", ":?",
+                                   ":W", ":D", ":F" ]
+  Follow( <cond_tail> )       = [ ")", ";" ]
+  Follow( <condition> )       = [ ";", ")" ]
+  Follow( <dec_list> )        = [ "ID", ":I", ":O", ":N", ":B", ":?", ":W", ":D", ":F" ]
+  Follow( <dec_tail> )        = [ ":F", ":D", ":W", ":?", ":B", ":N", ":O", ":I", "ID" ]
+  Follow( <declaration> )     = [ ":F", ":D", ":W", ":?", ":B", ":N", ":O", ":I", "ID", "int",
+                                   "float", "intarray", "floatarray", "scribble" ]
+  Follow( <do_stmt> )         = [ ":U", ":.", ":!", ":Z", "ID", ":I", ":O", ":N", ":B",
+                                   ":?", ":W", ":D", ":F" ]
+  Follow( <else_clause> )     = [ ":." ]
+  Follow( <expr_tail> )       = [ ",", ")", "]", ";", "<", "<=", ">", ">=", "==", "!=" ]
+  Follow( <expression> )      = [ "]", ")", ",", "!=", "==", ">=", ">", "<=", "<", ";" ]
+  Follow( <factor> )          = [ ",", ")", "]", ";", "<", "<=", ">", ">=", "==", "!=",
+                                   "-", "+" ]
+  Follow( <factor_tail> )     = [ "]", ")", ",", "+", "-", "!=", "==", ">=", ">", "<=", "<",
+                                   ";" ]
+  Follow( <float_list> )      = [ "]" ]
+  Follow( <float_list_tail> ) = [ "]" ]
+  Follow( <for_assign> )      = [ ")", ";" ]
+  Follow( <for_stmt> )        = [ ":U", ":.", ":!", ":Z", "ID", ":I", ":O", ":N", ":B",
+                                   ":?", ":W", ":D", ":F" ]
+  Follow( <if_stmt> )         = [ ":U", ":.", ":!", ":Z", "ID", ":I", ":O", ":N", ":B",
+                                   ":?", ":W", ":D", ":F" ]
+  Follow( <init> )            = [ ",", ";" ]
+  Follow( <init_value> )      = [ ";", "," ]
+  Follow( <input_stmt> )      = [ ":U", ":.", ":!", ":Z", "ID", ":I", ":O", ":N", ":B", ":?",
+                                   ":W", ":D", ":F" ]
+  Follow( <int_list> )        = [ "]" ]
+  Follow( <int_list_tail> )   = [ "]" ]
+  Follow( <item_list> )       = [ ";" ]
+  Follow( <item_list_tail> )  = [ ";" ]
+  Follow( <list_type> )       = [ "]" ]
+  Follow( <literal> )         = [ ")", "]", ",", "*", "/", "//", ";", "<", "<=", ">",
+                                   ">=", "==", "!=", "-", "+" ]
+  Follow( <mult_op> )         = [ "(", "SCRIBBLE_LIT", "FLOAT_LIT", "INT_LIT", "ID" ]
+  Follow( <newline_stmt> )    = [ ":U", ":.", ":!", ":Z", "ID", ":I", ":O", ":N", ":B", ":?",
+                                   ":W", ":D", ":F" ]
+  Follow( <output_stmt> )     = [ ":U", ":.", ":!", ":Z", "ID", ":I", ":O", ":N", ":B", ":?",
+                                   ":W", ":D", ":F" ]
+  Follow( <primary> )         = [ "]", ")", ",", "+", "-", "!=", "==", ">=", ">", "<=",
+                                   "<", ";", "//", "/", "*" ]
+  Follow( <program> )         = [ "$eof$" ]
+  Follow( <rel_op> )          = [ "(", "SCRIBBLE_LIT", "FLOAT_LIT", "INT_LIT", "ID" ]
+  Follow( <scribble_type> )   = [ ":" ]
+  Follow( <simple_stmt> )     = [ ":F", ":D", ":W", ":?", ":B", ":N", ":O", ":I", "ID", ":Z",
+                                   ":!", ":.", ":U" ]
+  Follow( <size_spec> )       = [ ":" ]
+  Follow( <statement> )       = [ ":U", ":.", ":!", ":Z", "ID", ":I", ":O", ":N", ":B",
+                                   ":?", ":W", ":D", ":F" ]
+  Follow( <stmt_list> )       = [ ":Z", ":!", ":.", ":U" ]
+  Follow( <stmt_tail> )       = [ ":U", ":.", ":!", ":Z" ]
+  Follow( <struct_stmt> )     = [ ":F", ":D", ":W", ":?", ":B", ":N", ":O", ":I", "ID", ":Z",
+                                   ":!", ":.", ":U" ]
+  Follow( <type> )            = [ ":" ]
+  Follow( <var_dec_list> )    = [ ";" ]
+  Follow( <var_dec_tail> )    = [ ";" ]
+  Follow( <var_list> )        = [ ";" ]
+  Follow( <var_list_tail> )   = [ ";" ]
+  Follow( <variable> )        = [ ")", "]", ",", "*", "/", "//", ";", "<", "<=", ">", ">=",
+                                   "==", "!=", "-", "+", ":=" ]
+  Follow( <variable_tail> )   = [ "]", ")", ":=", "+", "-", "!=", "==", ">=", ">", "<=", "<",
+                                   ";", "//", "/", "*", "," ]
+  Follow( <while_stmt> )      = [ ":U", ":.", ":!", ":Z", "ID", ":I", ":O", ":N", ":B", ":?",
+                                   ":W", ":D", ":F" ]
+
+
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  ~~  :Scopy Grammar 2018 Parse Table  ~~
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+  [ <program>, ":A" ] = 2
+
+  [ <stmt_list>, ":?" ] = 3
+  [ <stmt_list>, ":W" ] = 3
+  [ <stmt_list>, ":D" ] = 3
+  [ <stmt_list>, ":F" ] = 3
+  [ <stmt_list>, "ID" ] = 3
+  [ <stmt_list>, ":I" ] = 3
+  [ <stmt_list>, ":O" ] = 3
+  [ <stmt_list>, ":N" ] = 3
+  [ <stmt_list>, ":B" ] = 3
+
+  [ <stmt_tail>, ":?" ] = 4
+  [ <stmt_tail>, ":W" ] = 4
+  [ <stmt_tail>, ":D" ] = 4
+  [ <stmt_tail>, ":F" ] = 4
+  [ <stmt_tail>, "ID" ] = 4
+  [ <stmt_tail>, ":I" ] = 4
+  [ <stmt_tail>, ":O" ] = 4
+  [ <stmt_tail>, ":N" ] = 4
+  [ <stmt_tail>, ":B" ] = 4
+  [ <stmt_tail>, ":U" ] = 5
+  [ <stmt_tail>, ":." ] = 5
+  [ <stmt_tail>, ":!" ] = 5
+  [ <stmt_tail>, ":Z" ] = 5
+
+  [ <statement>, ":B" ] = 6
+  [ <statement>, ":N" ] = 6
+  [ <statement>, ":O" ] = 6
+  [ <statement>, ":I" ] = 6
+  [ <statement>, "ID" ] = 6
+  [ <statement>, ":F" ] = 7
+  [ <statement>, ":D" ] = 7
+  [ <statement>, ":W" ] = 7
+  [ <statement>, ":?" ] = 7
+
+  [ <simple_stmt>, "ID" ] = 8
+  [ <simple_stmt>, ":I" ] = 9
+  [ <simple_stmt>, ":O" ] = 10
+  [ <simple_stmt>, ":N" ] = 11
+  [ <simple_stmt>, ":B" ] = 12
+
+  [ <assign_stmt>, "ID" ] = 13
+
+  [ <input_stmt>, ":I" ] = 14
+
+  [ <var_list>, "ID" ] = 15
+
+  [ <var_list_tail>, "," ] = 16
+  [ <var_list_tail>, ";" ] = 17
+
+  [ <variable>, "ID" ] = 18
+
+  [ <variable_tail>, "[" ] = 19
+  [ <variable_tail>, "]" ] = 20
+  [ <variable_tail>, ")" ] = 20
+  [ <variable_tail>, ":=" ] = 20
+  [ <variable_tail>, "+" ] = 20
+  [ <variable_tail>, "-" ] = 20
+  [ <variable_tail>, "!=" ] = 20
+  [ <variable_tail>, "==" ] = 20
+  [ <variable_tail>, ">=" ] = 20
+  [ <variable_tail>, ">" ] = 20
+  [ <variable_tail>, "<=" ] = 20
+  [ <variable_tail>, "<" ] = 20
+  [ <variable_tail>, ";" ] = 20
+  [ <variable_tail>, "//" ] = 20
+  [ <variable_tail>, "/" ] = 20
+  [ <variable_tail>, "*" ] = 20
+  [ <variable_tail>, "," ] = 20
+
+  [ <output_stmt>, ":O" ] = 21
+
+  [ <item_list>, "ID" ] = 22
+  [ <item_list>, "INT_LIT" ] = 22
+  [ <item_list>, "FLOAT_LIT" ] = 22
+  [ <item_list>, "SCRIBBLE_LIT" ] = 22
+  [ <item_list>, "(" ] = 22
+
+  [ <item_list_tail>, "," ] = 23
+  [ <item_list_tail>, ";" ] = 24
+
+  [ <newline_stmt>, ":N" ] = 25
+
+  [ <break_stmt>, ":B" ] = 26
+
+  [ <struct_stmt>, ":?" ] = 27
+  [ <struct_stmt>, ":W" ] = 28
+  [ <struct_stmt>, ":D" ] = 29
+  [ <struct_stmt>, ":F" ] = 30
+
+  [ <if_stmt>, ":?" ] = 31
+
+  [ <else_clause>, ":!" ] = 32
+  [ <else_clause>, ":." ] = 33
+
+  [ <do_stmt>, ":D" ] = 34
+
+  [ <while_stmt>, ":W" ] = 35
+
+  [ <for_stmt>, ":F" ] = 36
+
+  [ <for_assign>, "ID" ] = 37
+
+  [ <int_list>, "INT_LIT" ] = 38
+
+  [ <int_list_tail>, "," ] = 39
+  [ <int_list_tail>, "]" ] = 40
+
+  [ <float_list>, "FLOAT_LIT" ] = 41
+
+  [ <float_list_tail>, "," ] = 42
+  [ <float_list_tail>, "]" ] = 43
+
+  [ <condition>, "ID" ] = 44
+  [ <condition>, "INT_LIT" ] = 44
+  [ <condition>, "FLOAT_LIT" ] = 44
+  [ <condition>, "SCRIBBLE_LIT" ] = 44
+  [ <condition>, "(" ] = 44
+
+  [ <cond_tail>, "!=" ] = 45
+  [ <cond_tail>, "==" ] = 45
+  [ <cond_tail>, ">=" ] = 45
+  [ <cond_tail>, ">" ] = 45
+  [ <cond_tail>, "<=" ] = 45
+  [ <cond_tail>, "<" ] = 45
+  [ <cond_tail>, ")" ] = 46
+  [ <cond_tail>, ";" ] = 46
+
+  [ <expression>, "SCRIBBLE_LIT" ] = 47
+  [ <expression>, "FLOAT_LIT" ] = 47
+  [ <expression>, "INT_LIT" ] = 47
+  [ <expression>, "ID" ] = 47
+  [ <expression>, "(" ] = 47
+
+  [ <expr_tail>, "-" ] = 48
+  [ <expr_tail>, "+" ] = 48
+  [ <expr_tail>, "," ] = 49
+  [ <expr_tail>, ")" ] = 49
+  [ <expr_tail>, "]" ] = 49
+  [ <expr_tail>, ";" ] = 49
+  [ <expr_tail>, "<" ] = 49
+  [ <expr_tail>, "<=" ] = 49
+  [ <expr_tail>, ">" ] = 49
+  [ <expr_tail>, ">=" ] = 49
+  [ <expr_tail>, "==" ] = 49
+  [ <expr_tail>, "!=" ] = 49
+
+  [ <factor>, "ID" ] = 50
+  [ <factor>, "INT_LIT" ] = 50
+  [ <factor>, "FLOAT_LIT" ] = 50
+  [ <factor>, "SCRIBBLE_LIT" ] = 50
+  [ <factor>, "(" ] = 50
+
+  [ <factor_tail>, "//" ] = 51
+  [ <factor_tail>, "/" ] = 51
+  [ <factor_tail>, "*" ] = 51
+  [ <factor_tail>, "]" ] = 52
+  [ <factor_tail>, ")" ] = 52
+  [ <factor_tail>, "," ] = 52
+  [ <factor_tail>, "+" ] = 52
+  [ <factor_tail>, "-" ] = 52
+  [ <factor_tail>, "!=" ] = 52
+  [ <factor_tail>, "==" ] = 52
+  [ <factor_tail>, ">=" ] = 52
+  [ <factor_tail>, ">" ] = 52
+  [ <factor_tail>, "<=" ] = 52
+  [ <factor_tail>, "<" ] = 52
+  [ <factor_tail>, ";" ] = 52
+
+  [ <primary>, "SCRIBBLE_LIT" ] = 53
+  [ <primary>, "FLOAT_LIT" ] = 53
+  [ <primary>, "INT_LIT" ] = 53
+  [ <primary>, "ID" ] = 54
+  [ <primary>, "(" ] = 55
+
+  [ <type>, "int" ] = 56
+  [ <type>, "float" ] = 57
+  [ <type>, "intarray" ] = 58
+  [ <type>, "floatarray" ] = 59
+  [ <type>, "scribble" ] = 60
+
+  [ <scribble_type>, "scribble" ] = 61
+
+  [ <size_spec>, "[" ] = 62
+  [ <size_spec>, ":" ] = 63
+
+  [ <literal>, "INT_LIT" ] = 64
+  [ <literal>, "FLOAT_LIT" ] = 65
+  [ <literal>, "SCRIBBLE_LIT" ] = 66
+
+  [ <mult_op>, "*" ] = 67
+  [ <mult_op>, "/" ] = 68
+  [ <mult_op>, "//" ] = 69
+
+  [ <add_op>, "+" ] = 70
+  [ <add_op>, "-" ] = 71
+
+  [ <rel_op>, "<" ] = 72
+  [ <rel_op>, "<=" ] = 73
+  [ <rel_op>, ">" ] = 74
+  [ <rel_op>, ">=" ] = 75
+  [ <rel_op>, "==" ] = 76
+  [ <rel_op>, "!=" ] = 77
+
+  [ <dec_list>, "scribble" ] = 78
+  [ <dec_list>, "int" ] = 78
+  [ <dec_list>, "float" ] = 78
+  [ <dec_list>, "intarray" ] = 78
+  [ <dec_list>, "floatarray" ] = 78
+
+  [ <dec_tail>, "scribble" ] = 79
+  [ <dec_tail>, "int" ] = 79
+  [ <dec_tail>, "float" ] = 79
+  [ <dec_tail>, "intarray" ] = 79
+  [ <dec_tail>, "floatarray" ] = 79
+  [ <dec_tail>, ":F" ] = 80
+  [ <dec_tail>, ":D" ] = 80
+  [ <dec_tail>, ":W" ] = 80
+  [ <dec_tail>, ":?" ] = 80
+  [ <dec_tail>, ":B" ] = 80
+  [ <dec_tail>, ":N" ] = 80
+  [ <dec_tail>, ":O" ] = 80
+  [ <dec_tail>, ":I" ] = 80
+  [ <dec_tail>, "ID" ] = 80
+
+  [ <declaration>, "scribble" ] = 81
+  [ <declaration>, "floatarray" ] = 81
+  [ <declaration>, "intarray" ] = 81
+  [ <declaration>, "float" ] = 81
+  [ <declaration>, "int" ] = 81
+
+  [ <var_dec_list>, "ID" ] = 82
+
+  [ <var_dec_tail>, "," ] = 83
+  [ <var_dec_tail>, ";" ] = 84
+
+  [ <init>, ":=" ] = 85
+  [ <init>, "," ] = 86
+  [ <init>, ";" ] = 86
+
+  [ <init_value>, "SCRIBBLE_LIT" ] = 87
+  [ <init_value>, "FLOAT_LIT" ] = 87
+  [ <init_value>, "INT_LIT" ] = 87
+  [ <init_value>, "[" ] = 88
+
+  [ <list_type>, "FLOAT_LIT" ] = 89
+  [ <list_type>, "INT_LIT" ] = 90

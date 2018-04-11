@@ -1,0 +1,26 @@
+:A
+
+:/
+Program by Colton Wehking
+Takes user input and sums their entries
+/:
+
+int : sum;
+intarray[10] : inputs;
+
+
+sum := 0;
+
+::Load user inputs into an array
+:F ( i := 0; i < 10; i := i + 1 )
+	:I inputs[i];	
+:.
+
+::Read from array and sum the results
+:F ( j := 0; j < 10; j := j + 1 )
+	sum := sum + inputs[j];	
+:.
+
+:O "The sum is: ", sum;
+
+:Z

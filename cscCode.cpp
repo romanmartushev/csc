@@ -1,25 +1,12 @@
 /*	____________________________________________________________________________
 
-	    Semantics and Coding Component Implementation for the Micro Compiler
-
-	                               mcode.cpp
-
-	                              Version 2007
- 
-	                           James L. Richards
-	                     Last Update: August 28, 2007
-	                     Update by M. J. Wolf: January 21,2016
-
-	The routines in this unit are based on those provided in the book 
-	"Crafting A Compiler" by Charles N. Fischer and Richard J. LeBlanc, Jr., 
-	Benjamin Cummings Publishing Co. (1991).
-
-	See Section 2.3-2.4, pp. 31-40.
+	    Semantics and Coding Component Implementation for the :Scopy Compiler
 	____________________________________________________________________________
 */
 
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 using namespace std;
 
 extern ifstream sourceFile;
@@ -27,6 +14,7 @@ extern ofstream outFile, listFile;
 
 #include "cscScan.h"   // Scanner class definition
 #include "cscCode.h"   // CodeGen class definition
+
 
 extern Scanner scan; // global Scanner object declared in micro.cpp
 
@@ -43,45 +31,102 @@ CodeGen::CodeGen()
 // ** Private Member Functions  **
 // *******************************
 
-void CodeGen::CheckId(const string & s)
+void CodeGen::CheckId(const ExprRec & s)
 {
-	if (!LookUp(s))  // variable not declared yet
+	if (!LookUp(s.name))  // variable not declared yet
 		Enter(s);
 }
 
-void CodeGen::Enter(const string & s)
-{
-	symbolTable.push_back(s);
+void CodeGen::MakeEven(int& number){
+	number = number % 2 == 1 ? number += 1 : number;
 }
 
-void CodeGen::ExtractExpr(const ExprRec & e, string& s)
+void CodeGen::Enter(const ExprRec & s)
 {
-	string t;
-	int k, n;
-
-	switch (e.kind)
+	Symbol symbol;
+	int size;
+	switch(s.kind)
 	{
-	case ID_EXPR:
-	case TEMP_EXPR:  // operand form: +k(R15)
-		s = e.name;
-		n = 0;
-		while (symbolTable[n] != s) n++;
-		k = 2 * n;  // offset: 2 bytes per variable
-		IntToAlpha(k, t);
-		s = "+" + t + "(R15)";
+		case ID_EXPR:
+		case LITERAL_EXPR:
+		case TEMP_EXPR:
+		case INT_LITERAL_EXPR:
+			symbol.DataType = Int;
+			symbol.InitialValue = s.val;
+			size = 2;
 		break;
-	case LITERAL_EXPR:
-		IntToAlpha(e.val, t);
-		s = "#" + t;
+		case FLOAT_LITERAL_EXPR:
+			symbol.DataType = Float;
+			symbol.InitialValue = s.val;
+			size = 4;
+		break;
+		case SCRIBBLE_LITERAL_EXPR:
+			symbol.DataType = Scribble;
+			symbol.NumberOfComponents = s.size;
+			symbol.stringValue = s.stringVal;
+			symbol.RelativeAddress = stringOffset;
+			vector<int> characterLocations;
+	    for(int i = 0; i < s.stringVal.length(); i++){
+        if(s.stringVal[i] == ':'){
+					if(isdigit(s.stringVal[i+1]) && isdigit(s.stringVal[i+2]) && isdigit(s.stringVal[i+3])){
+						characterLocations.push_back(i);
+					}
+					if(s.stringVal[i+1] == ':'){
+						characterLocations.push_back(i);
+						i++;
+					}
+				}
+			}
+			if(characterLocations.size() > 0){
+				cout << characterLocations.size() << endl;
+				stringOffset += s.size - characterLocations.size()*2;
+			}
+			else{
+				stringOffset += s.size;
+			}
+			MakeEven(stringOffset);
+		break;
 	}
+	symbol.Name = s.name;
+	if(s.kind != SCRIBBLE_LITERAL_EXPR){
+		symbol.RelativeAddress = Offset;
+		Offset += size;
+		MakeEven(Offset);
+	}
+	symbolTable.push_back(symbol);
 }
 
 string CodeGen::ExtractOp(const OpRec & o)
 {
-	if (o.op == PLUS)
-		return "IA        ";
-	else
-		return "IS        ";
+	if(o.kind == INT_LITERAL_EXPR){
+		switch(o.op)
+		{
+			case PLUS:
+				return "IA        ";
+			case MINUS:
+				return "IS        ";
+			case MULTIPLY:
+				return "IM        ";
+			case DIVIDE:
+				return "ID        ";
+		}
+	}else if (o.kind == FLOAT_LITERAL_EXPR){
+		switch(o.op)
+		{
+			case PLUS:
+				return "FA        ";
+			case MINUS:
+				return "FS        ";
+			case MULTIPLY:
+				return "FM        ";
+			case DIVIDE:
+				return "FD        ";
+		}
+	}else{
+			string s = "There was an issue with code.ExtractOp()!";
+			cout << "There was an issue with code.ExtractOp()! The o.kind == " << o.kind << ". The o.op == " << o.op << endl;
+			return s;
+	}
 }
 
 void CodeGen::Generate(const string & s1, const string & s2, const string & s3)
@@ -111,7 +156,6 @@ string CodeGen::GetTemp()
 	t = "Temp&";
 	IntToAlpha(++maxTemp, s);
 	t += s;
-	CheckId(t);
 	return t;
 }
 
@@ -139,9 +183,8 @@ void CodeGen::IntToAlpha(int val, string& str)
 bool CodeGen::LookUp(const string & s)
 {
 	for (unsigned i = 0; i < symbolTable.size(); i++)
-	if (symbolTable[i] == s)
+	if (symbolTable[i].Name == s)
 		return true;
-
 	return false;
 }
 
@@ -149,53 +192,116 @@ bool CodeGen::LookUp(const string & s)
 // ** Public Member Functions  **
 // ******************************
 
-void CodeGen::Assign(const ExprRec & target, const ExprRec & source)
+void CodeGen::Assign(ExprRec & target, ExprRec & source)
 {
 	string s;
 
-	ExtractExpr(source, s);
+
+	//Used when trying to assign an integer to a float variable
+	if(target.kind == FLOAT_LITERAL_EXPR && source.kind == INT_LITERAL_EXPR)
+	{
+		source.name = GetTemp();
+		CheckId(source);
+
+		for(int i = 0; i < symbolTable.size(); i++)
+		{
+			if(symbolTable[i].Name == source.name)
+			{
+				symbolTable[i].DataType = Float;
+				break;
+			}
+		}
+	}
+		
+	
+	GetSymbolValue(source,s);
 	Generate("LD        ", "R0", s);
-	ExtractExpr(target, s);
+	GetSymbolValue(target,s);
 	Generate("STO       ", "R0", s);
 }
 
 void CodeGen::Finish()
 {
-	string s;
+	int skipSize, memoryUsedByStrings = 0;
 
 	listFile.width(6);
 	listFile << ++scan.lineNumber << "  " << scan.lineBuffer << endl;
 	Generate("HALT      ", "", "");
+	Generate("LABEL     ", "STRINGS", "");
+	for(int i = 0; i < symbolTable.size(); i++)
+	{
+		if(symbolTable[i].DataType == Scribble)
+		{
+			Generate("STRING    ", "\"" + symbolTable[i].stringValue + "\"", "");
+			if(symbolTable[i].stringValue.length() != symbolTable[i].NumberOfComponents){
+				skipSize = (symbolTable[i].NumberOfComponents - symbolTable[i].stringValue.length()-1);
+				MakeEven(skipSize);
+				Generate("SKIP      ", to_string(skipSize), "");
+			}
+		}
+	}
 	Generate("LABEL     ", "VARS", "");
-	IntToAlpha(int(2*(symbolTable.size()+1)), s);
-	Generate("SKIP      ", s, "");
+	for(int i = 0; i < symbolTable.size(); i++)
+	{
+		/*if(symbolTable[i].DataType == Int)
+		{
+			Generate("INT    ",to_string(symbolTable[i].InitialValue), "");
+		}*/
+
+		if(symbolTable[i].DataType == Float)
+		{
+			Generate("REAL      ",to_string(symbolTable[i].InitialValue), "");
+		}
+	}
 	outFile.close();
 	listFile << endl << endl;
 	listFile << " _____________________________________________\n";
-	listFile << " <><><><>   S Y M B O L   T A B L E   <><><><>\n"
+	listFile << " <><><><>  V A R I A B L E   T A B L E   <><><><>\n"
 		<< endl;
 	listFile << " Relative" << endl;
-	listFile << " Address      Identifier" << endl;
-	listFile << " --------     --------------------------------" 
+	listFile << " Address      Identifier      Value      Type" << endl;
+	listFile << " --------     ----------      -----      -----"
 		<< endl;
 	for (unsigned i = 0; i < symbolTable.size(); i++)
 	{
-		listFile.width(7);
-		listFile << 2*i << "       " << symbolTable[i] << endl;
+		if(symbolTable[i].DataType != Scribble)
+		{
+			listFile.width(7);
+			listFile << symbolTable[i].RelativeAddress << "       "<< symbolTable[i].Name << "               "
+			<< symbolTable[i].InitialValue << "          " << symbolTable[i].DataType << endl;
+		}
 	}
-	listFile << " _____________________________________________" 
+	listFile << " _____________________________________________"
+		<< endl;
+	listFile << endl;
+	listFile << " _____________________________________________\n";
+	listFile << " <><><><>  S C R I B B L E   T A B L E   <><><><>\n"
+		<< endl;
+	listFile << " Relative" << endl;
+	listFile << " Address      Identifier      Value      Type" << endl;
+	listFile << " --------     ----------      -----      -----"
+		<< endl;
+	for (unsigned i = 0; i < symbolTable.size(); i++)
+	{
+		if(symbolTable[i].DataType == Scribble)
+		{
+			listFile.width(7);
+			listFile << symbolTable[i].RelativeAddress << "       "<< symbolTable[i].Name << "               "
+			<< symbolTable[i].InitialValue << "          " << symbolTable[i].DataType << endl;
+		}
+	}
+	listFile << " _____________________________________________"
 		<< endl;
 	listFile << endl;
 	listFile << " Normal successful compilation." << endl;
 	listFile.close();
 }
 
-void CodeGen::GenInfix(const ExprRec & e1, const OpRec & op, 
-                       const ExprRec & e2, ExprRec& e)
+void CodeGen::GenInfix(ExprRec & e1, const OpRec & op, ExprRec & e2, ExprRec& e)
 {
 	string opnd;
-
-	if (e1.kind == LITERAL_EXPR && e2.kind == LITERAL_EXPR)
+	cout << e1.kind << " : " << e2.kind << endl;
+	if ((e1.name == "int" && e2.name == "int") || (e1.name == "float" && e2.name == "float"))
 	{
 		e.kind = LITERAL_EXPR;
 		switch (op.op)
@@ -203,20 +309,56 @@ void CodeGen::GenInfix(const ExprRec & e1, const OpRec & op,
 		case PLUS:
 			e.val = e1.val + e2.val;
 			break;
-		case MINUS:
+		case MINUS:	
 			e.val = e1.val - e2.val;
+			break;
+		case MULTIPLY:
+			e.val = e1.val * e2.val;
+			break;
+		case DIVIDE:
+			e.val = e1.val/e2.val;
+			break;
 		}
 	}
 	else
 	{
-		e.kind = TEMP_EXPR;
+		OpRec nonConstOp = op;
+
+		//Int + Float = Float + Int. I don't know, but it works and fixes a major problem.
+		if(e1.kind == INT_LITERAL_EXPR && e2.kind == FLOAT_LITERAL_EXPR)
+		{
+			nonConstOp.kind = FLOAT_LITERAL_EXPR;
+			ExprRec tempExprRec = e2;
+			e2 = e1;
+			e1 = tempExprRec;
+		}
+
 		e.name = GetTemp();
-		ExtractExpr(e1, opnd);
+		CheckId(e);
+		e.val = 0;
+		GetSymbolValue(e1,opnd);
 		Generate("LD        ", "R0", opnd);
-		ExtractExpr(e2, opnd);
-		Generate(ExtractOp(op), "R0", opnd);
-		ExtractExpr(e, opnd);
+		GetSymbolValue(e2,opnd);
+
+		FloatGenInfix(nonConstOp, opnd);
+		
+		GetSymbolValue(e,opnd);
 		Generate("STO       ", "R0", opnd);
+	}
+}
+
+//Decides if the additional Int to Float method is needed. (Needed for all REAL number math)
+bool CodeGen::FloatGenInfix(const OpRec& op, const string& opnd)
+{
+	string operation = ExtractOp(op);
+	if(operation[0] == 'F')
+	{
+		Generate("FLT       ", "R1", opnd);
+		Generate(operation, "R0", "R1");
+	}
+	else
+	{
+		Generate(operation, "R0", opnd);
 	}
 }
 
@@ -225,44 +367,203 @@ void CodeGen::NewLine()
 	Generate("WRNL      ", "", "");
 }
 
-void CodeGen::ProcessId(ExprRec& e)
+void CodeGen::ProcessVar(ExprRec& e)
 {
-	CheckId(scan.tokenBuffer);
-	e.kind = ID_EXPR;
-	e.name = scan.tokenBuffer;
+	string s;
+	GetSymbolValue(e, s);
 }
 
-void CodeGen::ProcessLiteral(ExprRec& e)
+void CodeGen::ProcessLit(ExprRec& e)
 {
-	e.kind = LITERAL_EXPR;
-	e.val = atoi(scan.tokenBuffer.data());
+	if(e.kind == SCRIBBLE_LITERAL_EXPR)
+	{
+		e.stringVal = scan.tokenBuffer.data();
+		if(e.name == "")
+		{
+			if(e.size == 0)
+				e.size = scan.tokenBuffer.length();
+			e.name = GetTemp();
+			CheckId(e);
+		}
+	}
+	else if(scan.tokenBuffer.find(".") < scan.tokenBuffer.length()
+		|| scan.tokenBuffer.find("e") < scan.tokenBuffer.length()
+		|| scan.tokenBuffer.find("E") < scan.tokenBuffer.length())
+	{
+
+		e.val = atof(scan.tokenBuffer.data());
+		if(e.name == "")
+		{
+			e.name = GetTemp();
+			CheckId(e);
+		}
+	}
+	else
+	{
+		if(e.name == "")
+			e.name = "int";
+		e.val = atoi(scan.tokenBuffer.data());
+	}
 }
 
 void CodeGen::ProcessOp(OpRec& o)
 {
 	if (scan.tokenBuffer == "+")
 		o.op = PLUS;
-	else
+	else if (scan.tokenBuffer == "-")
 		o.op = MINUS;
+	else if (scan.tokenBuffer == "*")
+		o.op = MULTIPLY;
+	else if (scan.tokenBuffer == "/")
+		o.op = DIVIDE;
 }
 
-void CodeGen::ReadId(const ExprRec & inVar)
+void CodeGen::InputVar(ExprRec & inVar)
 {
 	string s;
-
-	ExtractExpr(inVar, s);
-	Generate("RDI       ", s, "");
+	GetSymbolValue(inVar,s);
+	if(inVar.kind == INT_LITERAL_EXPR)
+		Generate("RDI       ", s, "");
+	if(inVar.kind == FLOAT_LITERAL_EXPR)
+		Generate("RDF       ", s, "");
 }
 
 void CodeGen::Start()
 {
 	Generate("LDA       ", "R15", "VARS");
+	Generate("LDA       ", "R14", "STRINGS");
 }
 
-void CodeGen::WriteExpr(const ExprRec & outExpr)
+void CodeGen::WriteExpr(ExprRec & outExpr)
 {
 	string s;
+	GetSymbolValue(outExpr,s);
+	if(outExpr.kind == INT_LITERAL_EXPR || outExpr.name == "int")
+		Generate("WRI       ", s, "");
+	if(outExpr.kind == FLOAT_LITERAL_EXPR || outExpr.name == "float")
+		Generate("WRF       ", s, "");
+	if(outExpr.kind == SCRIBBLE_LITERAL_EXPR)
+		Generate("WRST      ", s, "");
+}
 
-	ExtractExpr(outExpr, s);
-	Generate("WRI       ", s, "");
+void CodeGen::GetSymbolValue(ExprRec& e, string & s)
+{
+	int index;
+	string t;
+
+	if(e.name == "int"){
+		IntToAlpha(e.val, t);
+		s = "#" + t;
+	}else if(e.name == "float"){
+		s = "#" + to_string(e.val);
+	}
+	else{
+		for(int i = 0 ; i < symbolTable.size(); i++){
+			if(e.name == symbolTable[i].Name){
+				index = i;
+				switch(symbolTable[i].DataType){
+					case Int:
+						e.kind = INT_LITERAL_EXPR;
+						break;
+					case Float:
+						e.kind = FLOAT_LITERAL_EXPR;
+						break;
+					case Scribble:
+						e.kind = SCRIBBLE_LITERAL_EXPR;
+						break;
+				}
+			}
+		}
+		if(e.kind == SCRIBBLE_LITERAL_EXPR)
+			s = "+" + to_string(symbolTable[index].RelativeAddress) + "(R14)";
+		else
+			s = "+" + to_string(symbolTable[index].RelativeAddress) + "(R15)";
+	}
+}
+
+
+void CodeGen::DefineVar(ExprRec & exprRec)
+{
+	exprRec.name = scan.tokenBuffer;
+}
+void CodeGen::InitializeVar(ExprRec & exprRec)
+{
+	ExprRec newExpr;
+	if(exprRec.kind != SCRIBBLE_LITERAL_EXPR)
+	{
+		if(scan.tokenBuffer.length() != 0)
+			newExpr.val = stof(scan.tokenBuffer);
+		else
+			newExpr.val = 0;
+		CheckId(exprRec);
+		if(exprRec.kind == FLOAT_LITERAL_EXPR)
+			newExpr.name = "float";
+		else
+		{
+			newExpr.name = "int";
+			Assign(exprRec, newExpr);
+		}
+	}
+	else
+	{
+		exprRec.val = 0;
+		CheckId(exprRec);
+	}
+	newExpr.val = exprRec.val;
+}
+void CodeGen::FloatAppend()
+{
+	//Code here
+}
+void CodeGen::IntAppend()
+{
+	//Code here
+}
+void CodeGen::ForAssign()
+{
+	//Code here
+}
+void CodeGen::ForUpdate()
+{
+	//Code here
+}
+void CodeGen::ForEnd()
+{
+	//Code here
+}
+void CodeGen::SetCondition()
+{
+	//Code here
+}
+void CodeGen::DoLoopBegin()
+{
+	//Code here
+}
+void CodeGen::DoLoopEnd()
+{
+	//Code here
+}
+void CodeGen::WhileBegin()
+{
+	//Code here
+}
+void CodeGen::WhileEnd()
+{
+	//Code here
+}
+void CodeGen::ProcessIf()
+{
+	//Code here
+}
+void CodeGen::ProcessElse()
+{
+	//Code here
+}
+void CodeGen::IfEnd()
+{
+	//Code here
+}
+void CodeGen::Break()
+{
+	//Code here
 }

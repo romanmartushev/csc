@@ -1,20 +1,6 @@
 /*	____________________________________________________________________________
 
-	           Semantics and Coding Component for the Micro Compiler
-
-	                                 mcode.h
-
-	                              Version 2007
- 
-	                           James L. Richards
-	                     Last Update: August 28, 2007
-	                     Update by M. J. Wolf: January 21,2016
-
-	The routines in this unit are based on those provided in the book
-	"Crafting A Compiler" by Charles N. Fischer and Richard J. LeBlanc, Jr.,
-	Benjamin Cummings Publishing Co. (1991).
-
-	The target language is SAM assembly language for the MACC2 virtual computer.
+	           Semantics and Coding Component for the :Scopy Compiler
 	____________________________________________________________________________
 */
 
@@ -26,52 +12,63 @@
 using namespace std;
 
 #include "cscScan.h"
+#include "cscSymbol.h"
+#include "cscSymbol.h"
 
-enum OpKind { PLUS, MINUS };
+enum OpKind { PLUS, MINUS, MULTIPLY, DIVIDE };
+enum ExprKind { ID_EXPR, LITERAL_EXPR, TEMP_EXPR, INT_LITERAL_EXPR, FLOAT_LITERAL_EXPR, SCRIBBLE_LITERAL_EXPR };
 
 struct OpRec // information about an operator
 {
+	ExprKind kind; //used for distinguishing float or int arithmetic
 	OpKind op; // operator type
 };
 
-enum ExprKind { ID_EXPR, LITERAL_EXPR, TEMP_EXPR };
 
 struct ExprRec // information about a constant, variable, or
                // an intermediate (temporary) result
 {
    ExprKind kind;   // operand type
-   string   name;   // used when kind is ID_EXPR or TEMP_EXPR
-   int      val;    // used when kind is LITERAL_EXPR
+   string   name;   // used when kind is ID_EXPR or TEMP_EXPR or FLOAT_LITERAL_EXPR or INT_LITERAL_EXPR
+   float      val;    // used when kind is ID_EXPR or TEMP_EXPR or FLOAT_LITERAL_EXPR or INT_LITERAL_EXPR
+   int size = 0; //Contains size of scribbles and arrays
+   string stringVal; //Used in scribbles (strings)
 };
 
 class CodeGen
 {
 public:
-
+	int Offset = 0;
+	int stringOffset = 0;
 	CodeGen();
 	// Initializes the code generator;
 
 /* _____________________________________________________________________________
 */
+	void MakeEven(int& number);
+	bool FloatGenInfix(const OpRec& op, const string& opnd);
 
-	void Assign(const ExprRec & target, const ExprRec & source);
+	void GetSymbolValue(ExprRec & e, string & s);
+	// sets the kind of incoming symbol to the previsouly declared type
+	// Returns the offset of a variable in the symbolTable
+
+	void Assign(ExprRec & target, ExprRec & source);
 	// Produces the assembly code for an assignment from Source to Target.
 
 	void Finish();
 	// Generates code to finish the program.
 
-	void GenInfix(const ExprRec & e1, const OpRec & op, 
-	              const ExprRec & e2, ExprRec& e);
+	void GenInfix(ExprRec & e1, const OpRec & op, ExprRec & e2, ExprRec& e);
 	// Produces the assembly code for an infix operation.
 
 	void NewLine();
 	// Produces the assembly code for starting a new output line.
 
-	void ProcessId(ExprRec& e);
-	// Declares the identifier in the token buffer and builds a
+	void ProcessVar(ExprRec& e);
+	// Declares the variable in the token buffer and builds a
 	// corresponding semantic record e.
 
-	void ProcessLiteral(ExprRec& e);
+	void ProcessLit(ExprRec& e);
 	// Converts the literal found in the token buffer into numeric form
 	// and builds a corresponding semantic record e.
 
@@ -79,39 +76,84 @@ public:
 	// Produces an operator descriptor O for the operator in the token
 	// buffer.
 
-	void ReadId(const ExprRec & InVar);
+	void InputVar(ExprRec & InVar);
 	// Produces the assembly code for reading a value for InVar.
 
 	void Start();
 	// Initializes the compiler.
 
-	void WriteExpr(const ExprRec & OutExpr);
+	void WriteExpr(ExprRec & OutExpr);
 	// Produces the assembly code for writing the value of OutExpr.
+
+	void DefineVar(ExprRec & exprRec);
+	// definition here
+
+	void InitializeVar(ExprRec & exprRec);
+	// definition here
+
+	void FloatAppend();
+	// definition here
+
+	void IntAppend();
+	// definition here
+
+	void ForAssign();
+	// definition here
+
+	void ForUpdate();
+	// definition here
+
+	void ForEnd();
+	// definition here
+
+	void SetCondition();
+	// definition here
+
+	void DoLoopBegin();
+	// definition here
+
+	void DoLoopEnd();
+	// definition here
+
+	void WhileBegin();
+	// definition here
+
+	void WhileEnd();
+	// definition here
+
+	void ProcessIf();
+	// definition here
+
+	void ProcessElse();
+	// definition here
+
+	void IfEnd();
+	// definition here
+
+	void Break();
+	// definition here
 
 /* _____________________________________________________________________________
 */
 
 private:
 
-	vector<string> symbolTable;
+	vector<Symbol> symbolTable;
 
 	int  maxTemp;     // max temporary allocated so far; initially 0
 
-	void CheckId(const string & s);
-	// Declares s as a new variable and enters it into the symbol table when s
-	// is not already in the symbol table.
+	void CheckId(const ExprRec & exprRec);
+	// Checks to see if a ExprRec was enter into the symbolTable
+	// IF not it calls Enter
 
-	void Enter(const string & s);
+	void Enter(const ExprRec & s);
 	// Enters s unconditionally into the symbol table.
-
-	void ExtractExpr(const ExprRec & e, string& s);
-	// Returns an operand representation s for the expression e.
 
 	string ExtractOp(const OpRec& o);
 	// Returns a representation for the operator o.
 
 	void Generate(const string & s1, const string & s2, const string & s3);
-	// Produces the SAM assembly code for one or two operand instructions. 
+	// Produces the SAM assembly code for one or two operand instructions.
 	// s1 is the opcode; s2 and s3 are operands.
 
 	string GetTemp();

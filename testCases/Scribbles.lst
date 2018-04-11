@@ -1,0 +1,113 @@
+
+
+ : S C O P Y   C O M P I L E R   L I S T I N G
+
+ Generated code is SAM assembly language for
+ the MACC2 virtual computer.
+ ___________________________________________
+
+ April 02, 2018 at 10:52 AM
+ Source file: testCases/Scribbles.sy
+
+ LINE #
+                    LDA       R15,VARS
+     1  :A
+     2  scribble[10] : x := "hello";
+     3  scribble[15] : y := "world";
+     4  
+                    LD        R0,#0
+                    STO       R0,+26(R15)
+     5  int : empty;
+                    LD        R0,#47
+                    STO       R0,+28(R15)
+     6  int : z := 47;
+                    LD        R0,#8
+                    STO       R0,+30(R15)
+     7  int : check := 8;
+                    LD        R0,#5
+                    STO       R0,+32(R15)
+     8  int : this := 5;
+     9  
+    10  ::float : a := 3.4;
+    11  
+    12  scribble[20] : test := "HELLOCAAAAAAAB";
+    13  
+    14  :: scribble
+                    WRST      +0(R15)
+    15  :O x;
+                    WRNL      
+    16  :N;
+    17  
+    18  :: int
+                    WRI       +30(R15)
+    19  :O check;
+                    WRNL      
+    20  :N;
+    21  
+    22  :: scribble
+                    WRST      +10(R15)
+    23  :O y;
+                    WRNL      
+    24  :N;
+    25  
+    26  :: int
+                    WRI       +28(R15)
+    27  :O z;
+                    WRNL      
+    28  :N;
+    29  
+    30  :: float
+    31  :::O a;
+                    WRNL      
+    32  :N;
+    33  
+    34  :: Temp scribble
+                    WRST      +0(R15)
+    35  :O x;
+                    WRNL      
+    36  :N;
+                    WRST      +10(R15)
+    37  :O y;
+                    WRNL      
+    38  :N;
+                    WRST      +34(R15)
+    39  :O test;
+                    WRNL      
+    40  :N;
+    41  
+    42  :: int
+                    WRI       +28(R15)
+    43  :O z;
+                    WRNL      
+    44  :N;
+    45  
+                    WRNL      
+    46  :N;
+    47  
+    48  :Z
+                    HALT      
+                    LABEL     VARS
+                    STRING    "hello"
+                    SKIP      3
+                    STRING    "world"
+                    SKIP      8
+                    STRING    "HELLOCAAAAAAAB"
+                    SKIP      4
+
+
+ _____________________________________________
+ <><><><>   S Y M B O L   T A B L E   <><><><>
+
+ Relative
+ Address      Identifier      Value      Type
+ --------     ----------      -----      -----
+      0       x               7.86652e-14          0
+     10       y               0          0
+     26       empty               5.91246e-39          1
+     28       z               47          1
+     30       check               8          1
+     32       this               5          1
+     34       test               7.00649e-45          0
+ _____________________________________________
+
+ Normal successful compilation.

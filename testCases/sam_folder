@@ -1,0 +1,43 @@
+LDA       R15,VARS
+LDA       R14,STRINGS
+LD        R0,#0
+STO       R0,+0(R15)
+LD        R0,#0
+STO       R0,+2(R15)
+LD        R0,#0
+STO       R0,+4(R15)
+LD        R0,#0
+STO       R0,+8(R15)
+WRI       #5
+WRI       #3
+WRI       #2
+WRI       #4
+WRST      +0(R14)
+WRI       #1
+WRST      +4(R14)
+WRI       #8
+WRST      +16(R14)
+WRNL      
+WRST      +18(R14)
+WRNL      
+RDI       +0(R15)
+RDI       +2(R15)
+WRI       +2(R15)
+WRI       +0(R15)
+WRNL      
+WRST      +40(R14)
+RDF       +4(R15)
+RDF       +8(R15)
+WRI       +8(R15)
+WRST      +64(R14)
+WRI       +4(R15)
+WRNL      
+HALT      
+LABEL     STRINGS
+STRING    ":010:010"
+STRING    "  :"start:" "
+STRING    "*"
+STRING    ":010:010Enter two integers::"
+STRING    "Enter two real numbers:: "
+STRING    " "
+LABEL     VARS

@@ -1,19 +1,6 @@
 /*	____________________________________________________________________________
 
-	         Scanner Component Implementation for the Micro Compiler
-
-	                               mscan.cpp
-
-	                              Version 2007
- 
-	                           James L. Richards
-	                     Last Update: August 28, 2007
-
-	The routines in this unit are based on those provided in the book 
-	"Crafting A Compiler" by Charles N. Fischer and Richard J. LeBlanc, Jr., 
-	Benjamin Cummings Publishing Co. (1991).
-
-	See Section 2.2, pp. 25-29.
+	         Scanner Component Implementation for the :Scopy Compiler
 	____________________________________________________________________________
 */
 
@@ -45,15 +32,15 @@ Scanner::Scanner()
 void Scanner::BufferChar(char c)
 {
 	if (tokenBuffer.length() < ID_STRING_LEN)
-		tokenBuffer += toupper(c);
+		tokenBuffer += c;
 }
 
 Token Scanner::CheckReserved()
 {
 	if (tokenBuffer == ":A") return BEGIN_SYM;
 	if (tokenBuffer == ":Z") return END_SYM;
-	if (tokenBuffer == ":I") return READ_SYM;
-	if (tokenBuffer == ":O") return WRITE_SYM;
+	if (tokenBuffer == ":I") return INPUT_SYM;
+	if (tokenBuffer == ":O") return OUTPUT_SYM;
 	if (tokenBuffer == ":B") return BREAK_SYM;
 	if (tokenBuffer == ":D") return DO_SYM;
 	if (tokenBuffer == ":F") return FOR_SYM;
@@ -65,11 +52,10 @@ Token Scanner::CheckReserved()
 	if (tokenBuffer == ":=") return ASSIGN_OP;
 	if (tokenBuffer == ":N") return NEWLINE_SYM;
 	if (tokenBuffer == "int") return INT_SYM;
-    if(tokenBuffer =="float") return FLOAT_SYM;
-    if(tokenBuffer =="floatarray") return FLOATARRAY_SYM;
-    if(tokenBuffer =="intarray") return INTARRAY_SYM;
-    if(tokenBuffer =="scribble") return SCRIBBLE_SYM;
-
+	if (tokenBuffer =="float") return FLOAT_SYM;
+	if (tokenBuffer =="floatarray") return FLOATARRAY_SYM;
+	if (tokenBuffer =="intarray") return INTARRAY_SYM;
+	if (tokenBuffer =="scribble") return SCRIBBLE_SYM;
 
 	return ID;
 }
@@ -118,8 +104,17 @@ Token Scanner::GetNextToken()
 	currentChar = NextChar();
 	while (!sourceFile.eof())
 	{
-		if (isspace(currentChar))
-			currentChar = NextChar();     // do nothing
+		if (isspace(currentChar) || multilineComment)
+		{
+			if (currentChar == '/' && sourceFile.peek() == ':')  // multi line comment end
+			{
+				multilineComment = false;
+				currentChar = NextChar();
+			}
+
+				currentChar = NextChar();     // do nothing
+		}
+
 		else if (isalpha(currentChar))
 		{                                // identifier
 			BufferChar(currentChar);
@@ -132,22 +127,67 @@ Token Scanner::GetNextToken()
 			}
 			return CheckReserved();
 		}
+		else if (currentChar == ':')
+		{
+			if (sourceFile.peek() == ':') // single line comment
+				do  // skip comment
+					currentChar = NextChar();
+				while (currentChar != '\n');
+			else if (sourceFile.peek() == '/') // multi line comment start
+			{
+					multilineComment = true;
+			}
+
+			else
+			{
+
+				BufferChar(currentChar);
+				currentChar = NextChar();
+
+				if(isspace(currentChar))
+					return COLON;
+
+				else
+				{
+					BufferChar(currentChar);
+					return CheckReserved();
+				}
+			}
+		}
 		else if (isdigit(currentChar))
 		{                                // integer literal
 			BufferChar(currentChar);
 			c = sourceFile.peek();
-			while (isdigit(c))
+
+			DigitWhileLoop(currentChar, c);
+
+			if(c == 'e' || c == 'E')
+				return CheckScientificNotation(currentChar, c);
+
+			if(c == '.')
 			{
 				currentChar = NextChar();
 				BufferChar(currentChar);
 				c = sourceFile.peek();
+
+				DigitWhileLoop(currentChar, c);
+
+				if(c == 'e' || c == 'E')
+					return CheckScientificNotation(currentChar, c);
+
+				return FLOAT_LIT;
 			}
-			return INT_LITERAL;
+
+			return INT_LIT;
 		}
+		else if (currentChar == '[')
+			return LSTAPLE;
+		else if (currentChar == ']')
+			return RSTAPLE;
 		else if (currentChar == '(')
-			return LPAREN;
+			return LBANANA;
 		else if (currentChar == ')')
-			return RPAREN;
+			return RBANANA;
 		else if (currentChar == ';')
 			return SEMICOLON;
 		else if (currentChar == ',')
@@ -157,26 +197,150 @@ Token Scanner::GetNextToken()
 			BufferChar(currentChar);
 			return PLUS_OP;
 		}
-		else if (currentChar == ':')
-			if (sourceFile.peek() == '=')
-			{                             // := operator
-				currentChar = NextChar();
-				return ASSIGN_OP;
+		else if (currentChar == '/')
+		{
+			if (sourceFile.peek() == ':') // End multiline comment
+			{
+				multilineComment = false;
 			}
-			else
-				LexicalError(currentChar);
-		else if (currentChar == '-')  
-			if (sourceFile.peek() == '-') // comment
-				do  // skip comment
-					currentChar = NextChar();
-				while (currentChar != '\n');
-		else
+			else if (sourceFile.peek() == '/') // // Integer division
+			{
+				currentChar = NextChar();
+				return INTEGERDIV_OP;
+			}
+			else { //Real division
+				BufferChar(currentChar);
+				return REALDIV_OP;
+			}
+		}
+		else if (currentChar == '-')
 		{
 			BufferChar(currentChar);      // minus operator
 			return MINUS_OP;
+		}
+		else if (currentChar == '=') // == EQ_OP
+		{
+			if(sourceFile.peek() == '=')
+			{
+				currentChar = NextChar();
+				return EQ_OP;
+			}
+		}
+		else if (currentChar == '>')
+			if (sourceFile.peek() == '=') // >= GE_OP
+			{
+				currentChar = NextChar();
+				return GE_OP;
+			}
+			else { // > GT_OP
+				BufferChar(currentChar);
+				return GT_OP;
+			}
+		else if (currentChar == '<')
+			if (sourceFile.peek() == '=') // >= LE_OP
+			{
+				currentChar = NextChar();
+				return LE_OP;
+			}
+			else { // < LT_OP
+				BufferChar(currentChar);
+				return LT_OP;
+			}
+		else if (currentChar == '!')
+		{
+			if(sourceFile.peek() == '=') // != NE_OP
+			{
+				currentChar = NextChar();
+				return NE_OP;
+			}
+		}
+		else if (currentChar == '*') // * MULT_OP
+		{
+			BufferChar(currentChar);
+			return MULT_OP;
+		}
+		else if (currentChar == ',') // , COMMA
+		{
+			BufferChar(currentChar);
+			return COMMA;
+		}
+		else if (currentChar == '"'){
+										// String literal. Handles colons and double quotes
+			while(true){
+				currentChar = NextChar();
+				c = sourceFile.peek();
+
+				if(currentChar != '"')
+				{
+					if( currentChar == '\\')
+					{
+						if(c == '"'){
+							BufferChar(':');
+							currentChar = NextChar();
+							c = sourceFile.peek();
+							BufferChar('"');
+						}
+						else if (c == 'n'){
+							BufferChar(':');
+							BufferChar('0');
+							BufferChar('1');
+							BufferChar('0');
+							currentChar = NextChar();
+							c = sourceFile.peek();
+						}
+						else{
+							BufferChar('\\');
+						}
+					}
+					else if(currentChar == ':')
+					{
+						BufferChar(':');
+						BufferChar(':');
+					}
+
+					else BufferChar(currentChar);
+
+				}
+				else
+				{
+					break;
+				}
+			}
+			return SCRIBBLE_LIT;
 		}
 		else
 			LexicalError(currentChar);
 	} // end while
 	return EOF_SYM;
+}
+
+void Scanner::DigitWhileLoop(char& currentChar, char& c)
+{
+	while(isdigit(c))
+		{
+			currentChar = NextChar();
+			BufferChar(currentChar);
+			c = sourceFile.peek();
+		}
+}
+
+Token Scanner::CheckScientificNotation(char& currentChar, char& c)
+{
+	currentChar = NextChar();
+	BufferChar(currentChar);
+	c = sourceFile.peek();
+
+	if(c == '+' || c == '-')
+	{
+		currentChar = NextChar();
+		BufferChar(currentChar);
+		c = sourceFile.peek();
+
+		DigitWhileLoop(currentChar, c);
+	}
+
+	else
+		DigitWhileLoop(currentChar, c);
+
+	return FLOAT_LIT;
 }

@@ -1,0 +1,14 @@
+:A
+:: declare a variable
+int : x;
+intarray[10] : inputs;
+
+
+:: broken test loop
+:F ( i := 0; i < 10; i := "1" )
+	:I inputs[i];
+:.
+::output zero
+:O 0;
+
+:Z

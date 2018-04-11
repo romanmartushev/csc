@@ -1,0 +1,161 @@
+*parser,fgmstvx     :Scopy Grammar 2018
+*tokens
+"$eof$"             EOF_SYM.
+":A"                BEGIN_SYM.
+":B"                BREAK_SYM.
+":D"                DO_SYM.
+":F"                FOR_SYM.
+"float"             FLOAT_SYM.
+"floatarray"        FLOATARRAY_SYM.
+":I"                INPUT_SYM.
+"int"               INT_SYM.
+"intarray"          INTARRAY_SYM.
+":N"                NEWLINE_SYM.
+":O"                OUTPUT_SYM.
+"scribble"          SCRIBBLE_SYM.
+":U"                UNTIL_SYM.
+":W"                WHILE_SYM.
+":Z"                END_SYM.
+":?"                IF_SYM.
+":!"                ELSE_SYM.
+":."                ENDSTMT_SYM.
+"["                 LSTAPLE.
+"]"                 RSTAPLE.
+"("                 LBANANA. 
+")"                 RBANANA.
+":"                 COLON.
+";"                 SEMICOLON.
+","                 COMMA.
+":="                ASSIGN_OP.
+"+"                 PLUS_OP. 
+"-"                 MINUS_OP.
+"*"                 MULT_OP.
+"/"                 REALDIV_OP.
+"//"                INTEGERDIV_OP.
+"<"                 LT_OP.
+"<="                LE_OP.
+">"                 GT_OP.
+">="                GE_OP.
+"=="                EQ_OP.
+"!="                NE_OP.
+"ID"                ID.
+"INT_LIT"           INT_LIT.
+"FLOAT_LIT"         FLOAT_LIT.
+"SCRIBBLE_LIT"      SCRIBBLE_LIT.
+[Start]
+[Finish]
+[ProcessVar]
+[Assign]
+[InputVar]
+[Break]
+[NewLine]
+[WriteExpr]
+[ProcessIf]
+[ProcessElse]
+[IfEnd]
+[DoLoopBegin]
+[DoLoogEnd]
+[WhileBegin]
+[WhileEnd]
+[ForUpdate]
+[ForEnd]
+[ForAssign]
+[IntAppend]
+[FloatAppend]
+[ProcessOp]
+[SetCondition]
+[GenInfix]
+[ProcessLit]
+[ProcessVar]
+[DefineVar]
+[InitializeVar]
+*grammar
+<program>           [Start] ":A" <dec_list> <stmt_list> ":Z" [End]
+<stmt_list>         <statement> <stmt_tail>
+<stmt_tail>         <statement> <stmt_tail>
+                  | ""
+<statement>         <simple_stmt>  
+                  | <struct_stmt>
+<simple_stmt>       <assign_stmt>
+                  | <input_stmt>
+                  | <output_stmt>
+                  | <newline_stmt>
+                  | <break_stmt> 
+<assign_stmt>       <variable> ":=" <expression> [Assign] ";"
+<input_stmt>       ":I" <var_list> ";"
+<var_list>          <variable> [InputVar] <var_list_tail>
+<var_list_tail>     "," <variable> [InputVar] <var_list_tail>
+                  | ""
+<variable>          "ID" <variable_tail> [ProcessVar]
+<variable_tail>     "[" <expression> "]"
+                  | ""
+<output_stmt>        ":O"  <item_list> ";"
+<item_list>         <expression> [WriteExpr] <item_list_tail>  
+<item_list_tail>    "," <expression> [WriteExpr] <item_list_tail>
+                  | ""
+<newline_stmt>      ":N" [NewLine] ";"
+<break_stmt>        ":B" [Break] ";"
+<struct_stmt>       <if_stmt>
+                  | <while_stmt>
+                  | <do_stmt>
+                  | <for_stmt>
+<if_stmt>           ":?" "(" <condition> ")" [ProcessIf] <stmt_list> <else_clause> ":." [IfEnd]
+<else_clause>       ":!" [ProcessElse] <stmt_list>
+                  | ""
+<do_stmt>           ":D" [DoLoopBegin] <stmt_list> ":U" "(" <condition> ")" [DoLoopEnd] ";"
+<while_stmt>        ":W" "(" <condition> ")"  [WhileBegin] <stmt_list> ":." [WhileEnd]
+<for_stmt>          ":F" "(" <for_assign> ";" <condition>  ";" [ForUpdate] <for_assign> ")" <stmt_list> ":." [ForEnd]
+<for_assign>	    <variable> ":=" <expression> [ForAssign]
+<int_list>          "INT_LIT" [IntAppend] <int_list_tail>  
+<int_list_tail>    "," "INT_LIT" [IntAppend] <int_list_tail>  
+                  | ""
+<float_list>        "FLOAT_LIT" [FloatAppend] <float_list_tail>  
+<float_list_tail>    "," "FLOAT_LIT" [FloatAppend]  <float_list_tail>  
+                  | ""
+<condition>         <expression> <cond_tail> [SetCondition]
+<cond_tail>         <rel_op> [ProcessOp] <expression>
+                  | ""
+<expression>        <factor> <expr_tail>
+<expr_tail>         <add_op> [ProcessOp] <factor> [GenInfix] <expr_tail>
+                  | ""
+<factor>            <primary> <factor_tail>
+<factor_tail>       <mult_op> [ProcessOp] <primary> [GenInfix]  <factor_tail>
+                  | ""
+<primary>           <literal> [ProcessLit]
+                  | <variable>  [ProcessVar]
+                  | "(" <expression> ")" 
+<type>              "int" 
+                  | "float"
+                  | "intarray" <size_spec>
+                  | "floatarray" <size_spec>
+                  |  <scribble_type>
+<scribble_type>      "scribble" <size_spec>
+<size_spec>         "[" "INT_LIT" "]"
+                  | ""
+<literal>           "INT_LIT" 
+                  | "FLOAT_LIT"
+                  | "SCRIBBLE_LIT" 
+<mult_op>           "*" 
+                  | "/"
+                  | "//"
+<add_op>            "+" 
+                  | "-"
+<rel_op>            "<" 
+                  | "<=" 
+                  | ">" 
+                  | ">=" 
+                  | "==" 
+                  | "!="
+<dec_list>          <declaration> <dec_tail>
+<dec_tail>          <declaration> <dec_tail>
+                  | ""
+<declaration>       <type> ":" <var_dec_list> ";"
+<var_dec_list>      "ID" [DefineVar] <init> [InitializeVar] <var_dec_tail>
+<var_dec_tail>      "," "ID" [DefineVar] <init> [InitializeVar] <var_dec_tail>
+                  | ""
+<init>              ":=" <init_value>
+                  | ""
+<init_value>        <literal> [ProcessLit]
+                  | "[" <list_type> "]"
+<list_type>         <float_list>
+                  | <int_list>

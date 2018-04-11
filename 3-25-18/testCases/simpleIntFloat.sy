@@ -1,0 +1,10 @@
+:A
+:: decleration of variables
+
+int : x;
+float : y;
+
+:O x,y;
+
+
+:Z

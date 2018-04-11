@@ -1,0 +1,7 @@
+::  00simple.csc
+:://  One of the simplest MNC programs possible.
+
+:A
+int : x;
+:O 8;
+:Z
