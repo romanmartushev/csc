@@ -15,7 +15,7 @@ using namespace std;
 #include "cscSymbol.h"
 #include "cscSymbol.h"
 
-enum OpKind { PLUS, MINUS, MULTIPLY, DIVIDE };
+enum OpKind { PLUS, MINUS, MULTIPLY, DIVIDE, LE, LT, GT, GE, EQ, NE };
 enum ExprKind { ID_EXPR, LITERAL_EXPR, TEMP_EXPR, INT_LITERAL_EXPR, FLOAT_LITERAL_EXPR, SCRIBBLE_LITERAL_EXPR, INT_ARRAY, FLOAT_ARRAY };
 
 struct OpRec // information about an operator
@@ -41,6 +41,8 @@ class CodeGen
 public:
 	int Offset = 0;
 	int stringOffset = 0;
+	int StatementCounter = 0;
+	vector<int> Stack;
 	CodeGen();
 	// Initializes the code generator;
 
@@ -106,7 +108,7 @@ public:
 	void ForEnd();
 	// definition here
 
-	void SetCondition();
+	void SetCondition(ExprRec& leftHandSide, ExprRec& rightHandSide);
 	// definition here
 
 	void DoLoopBegin();
@@ -121,7 +123,7 @@ public:
 	void WhileEnd();
 	// definition here
 
-	void ProcessIf();
+	void ProcessIf(OpRec& op);
 	// definition here
 
 	void ProcessElse();

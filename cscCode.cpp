@@ -90,10 +90,10 @@ void CodeGen::Enter(const ExprRec & s)
 				}
 			}
 			if(characterLocations.size() > 0){
-				stringOffset += s.size - characterLocations.size()*2;
+				stringOffset += s.size - characterLocations.size()*2 + 2;
 			}
 			else{
-				stringOffset += s.size;
+				stringOffset += s.size + 2;
 			}
 			MakeEven(stringOffset);
 		break;
@@ -343,6 +343,13 @@ void CodeGen::GenInfix(ExprRec & e1, OpRec & op, ExprRec & e2, ExprRec& e)
 		case DIVIDE:
 			e.val = e1.val/e2.val;
 			break;
+		case GE:
+		case GT:
+		case LE:
+		case LT:
+		case EQ:
+		case NE:
+		break;
 		}
 	}
 	else
@@ -432,6 +439,20 @@ void CodeGen::ProcessOp(OpRec& o)
 		o.op = MULTIPLY;
 	else if (scan.tokenBuffer == "/")
 		o.op = DIVIDE;
+	else if (scan.tokenBuffer == "/")
+		o.op = DIVIDE;
+	else if (scan.tokenBuffer == ">")
+		o.op = GT;
+	else if (scan.tokenBuffer == ">=")
+		o.op = GE;
+	else if (scan.tokenBuffer == "<")
+		o.op = LT;
+	else if (scan.tokenBuffer == "<=")
+		o.op = LE;
+	else if (scan.tokenBuffer == "==")
+		o.op = EQ;
+	else if (scan.tokenBuffer == "!=")
+		o.op = NE;
 }
 
 void CodeGen::InputVar(ExprRec & inVar)
@@ -579,9 +600,13 @@ void CodeGen::ForEnd()
 {
 	//Code here
 }
-void CodeGen::SetCondition()
+void CodeGen::SetCondition(ExprRec& leftHandSide, ExprRec& rightHandSide)
 {
-	//Code here
+	string s;
+	GetSymbolValue(leftHandSide, s);
+	Generate("LD        ", "R0", s);
+	GetSymbolValue(rightHandSide, s);
+	Generate("IC        ", "R0", s);
 }
 void CodeGen::DoLoopBegin()
 {
@@ -599,9 +624,32 @@ void CodeGen::WhileEnd()
 {
 	//Code here
 }
-void CodeGen::ProcessIf()
+void CodeGen::ProcessIf(OpRec& op)
 {
-	//Code here
+	StatementCounter++;
+	Stack.push_back(StatementCounter);
+	switch (op.op)
+	{
+		case GE:
+			Generate("JLT       ", "IFEND" + to_string(Stack.back()), "");
+			break;
+		case GT:
+			Generate("JLE       ", "IFEND" + to_string(Stack.back()), "");
+			break;
+		case LE:
+			Generate("JGT       ", "IFEND" + to_string(Stack.back()), "");
+			break;
+		case LT:
+			Generate("JGE       ", "IFEND" + to_string(Stack.back()), "");
+			break;
+		case EQ:
+			Generate("JNE       ", "IFEND" + to_string(Stack.back()), "");
+			break;
+		case NE:
+			Generate("JEQ       ", "IFEND" + to_string(Stack.back()), "");
+			break;
+		break;
+	}
 }
 void CodeGen::ProcessElse()
 {
@@ -609,7 +657,8 @@ void CodeGen::ProcessElse()
 }
 void CodeGen::IfEnd()
 {
-	//Code here
+	Generate("LABEL     ", "IFEND" + to_string(Stack.back()), "");
+	Stack.pop_back();
 }
 void CodeGen::Break()
 {

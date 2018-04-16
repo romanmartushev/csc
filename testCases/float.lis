@@ -1,0 +1,32 @@
+
+   SAM 2018 Assembler Listing
+
+   April 11, 2018 at 9:46 A.M.
+   SOURCE FILE: testCases/float.asm
+
+        LN    LC
+         0     0: LDA       R15,VARS
+         1     4: LDA       R14,STRINGS
+         2     8: LD        R0,+4(R15)
+         3     C: FA        R0,+0(R15)
+         4    10: STO       R0,+8(R15)
+         5    14: LD        R0,+10(R15)
+         6    18: STO       R0,+0(R15)
+         7    1C: WRF       +0(R15)
+         8    20: WRNL      
+         9    22: HALT      
+        10    24: LABEL     STRINGS
+        11    24: LABEL     VARS
+        12    24: REAL      3.500000
+        13    28: REAL      2.000000
+        14    2C: REAL      0.000000
+
+
+MACC Memory Hexadecimal Dump
+
+ ADDR |   0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
+------+----------------------------------------------------------------
+    0 |  9F  90  00  24  9F  10  00  24  88  2F  00  04  30  2F  00  00
+   10 |  90  2F  00  08  88  2F  00  0A  90  2F  00  00  D0  AF  00  00
+   20 |  D5  80  F8  00  40  60  00  00  40  00  00  00  00  00  00  00
+

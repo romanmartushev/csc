@@ -69,7 +69,7 @@ private:
 
 	void RelOp();
 
-	void CondTail();
+	void CondTail(ExprRec & expr, OpRec& op);
 
 	void FloatListTail(ExprRec & exprRec);
 
@@ -83,7 +83,7 @@ private:
 
 	void ElseClause();
 
-	void Condition();
+	void Condition(OpRec& op);
 
 	void ForStmt();
 
