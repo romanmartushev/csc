@@ -15,8 +15,8 @@ using namespace std;
 #include "cscSymbol.h"
 #include "cscSymbol.h"
 
-enum OpKind { PLUS, MINUS, MULTIPLY, DIVIDE };
-enum ExprKind { ID_EXPR, LITERAL_EXPR, TEMP_EXPR, INT_LITERAL_EXPR, FLOAT_LITERAL_EXPR, SCRIBBLE_LITERAL_EXPR };
+enum OpKind { PLUS, MINUS, MULTIPLY, DIVIDE, LE, LT, GT, GE, EQ, NE };
+enum ExprKind { ID_EXPR, LITERAL_EXPR, TEMP_EXPR, INT_LITERAL_EXPR, FLOAT_LITERAL_EXPR, SCRIBBLE_LITERAL_EXPR, INT_ARRAY, FLOAT_ARRAY };
 
 struct OpRec // information about an operator
 {
@@ -33,6 +33,7 @@ struct ExprRec // information about a constant, variable, or
    float      val;    // used when kind is ID_EXPR or TEMP_EXPR or FLOAT_LITERAL_EXPR or INT_LITERAL_EXPR
    int size = 0; //Contains size of scribbles and arrays
    string stringVal; //Used in scribbles (strings)
+	 vector<float> ArrayValues;
 };
 
 class CodeGen
@@ -40,15 +41,19 @@ class CodeGen
 public:
 	int Offset = 0;
 	int stringOffset = 0;
+	int StatementCounter = 0;
+	int StatementCounter2 = 0;
+	vector<int> Stack;
+	vector<int> ColtonWasHere;
+	vector<int> StackType;
 	CodeGen();
 	// Initializes the code generator;
 
 /* _____________________________________________________________________________
 */
 	void MakeEven(int& number);
-	bool FloatGenInfix(const OpRec& op, const string& opnd);
 
-	void GetSymbolValue(ExprRec & e, string & s);
+	void GetSymbolValue(ExprRec & e, string & s, int arrayOffset = 0);
 	// sets the kind of incoming symbol to the previsouly declared type
 	// Returns the offset of a variable in the symbolTable
 
@@ -58,7 +63,7 @@ public:
 	void Finish();
 	// Generates code to finish the program.
 
-	void GenInfix(ExprRec & e1, const OpRec & op, ExprRec & e2, ExprRec& e);
+	void GenInfix(ExprRec & e1, OpRec & op, ExprRec & e2, ExprRec& e);
 	// Produces the assembly code for an infix operation.
 
 	void NewLine();
@@ -91,40 +96,45 @@ public:
 	void InitializeVar(ExprRec & exprRec);
 	// definition here
 
-	void FloatAppend();
+	void FloatAppend(ExprRec & exprRec);
 	// definition here
 
-	void IntAppend();
+	void IntAppend(ExprRec & exprRec);
 	// definition here
 
-	void ForAssign();
+	void ForAssign(ExprRec& expr);
 	// definition here
 
-	void ForUpdate();
+	void ForUpdate(OpRec& op);
+	// definition here
+
+	void ForLabeling();
 	// definition here
 
 	void ForEnd();
 	// definition here
 
-	void SetCondition();
+	void SetCondition(ExprRec& leftHandSide, ExprRec& rightHandSide);
 	// definition here
-
 	void DoLoopBegin();
 	// definition here
 
-	void DoLoopEnd();
+	void DoLoopEnd(OpRec& op);
 	// definition here
 
-	void WhileBegin();
+	void WhileLabeling();
+	// definition here
+
+	void WhileBegin(OpRec& op);
 	// definition here
 
 	void WhileEnd();
 	// definition here
 
-	void ProcessIf();
+	void ProcessIf(OpRec& op);
 	// definition here
 
-	void ProcessElse();
+	void ProcessElse(OpRec& op);
 	// definition here
 
 	void IfEnd();

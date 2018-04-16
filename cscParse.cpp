@@ -46,15 +46,15 @@ void Parser::Match(Token t)
 }
 
 
-void Parser::ListType()
+void Parser::ListType(ExprRec & exprRec)
 {
 	switch (NextToken())
 	{
 	case FLOAT_LIT:
-		FloatList();
+		FloatList(exprRec);
 		break;
 	case INT_LIT:
-		IntList();
+		IntList(exprRec);
 		break;
 	default:
 		SyntaxError(NextToken(), "");
@@ -73,7 +73,7 @@ void Parser::InitValue(ExprRec& exprRec)
 		break;
 	case LSTAPLE:
 		Match(LSTAPLE);
-		ListType();
+		ListType(exprRec);
 		Match(RSTAPLE);
 		break;
 	default:
@@ -201,10 +201,12 @@ void Parser::Type(ExprRec& exprRec)
 		break;
 	case INTARRAY_SYM:
 		Match(INTARRAY_SYM);
+		exprRec.kind = INT_ARRAY;
 		SizeSpec(exprRec);
 		break;
 	case FLOATARRAY_SYM:
 		Match(FLOATARRAY_SYM);
+		exprRec.kind = FLOAT_ARRAY;
 		SizeSpec(exprRec);
 		break;
 	case SCRIBBLE_SYM:
@@ -265,10 +267,9 @@ void Parser::FactorTail(ExprRec& expr)
 	case MULT_OP:
 	case REALDIV_OP:
 	case INTEGERDIV_OP:
-			leftOperand.kind = expr.kind;
-			leftOperand.val = expr.val;
-			leftOperand.name= expr.name;
-		op.kind = expr.kind;
+		leftOperand.kind = expr.kind;
+		leftOperand.val = expr.val;
+		leftOperand.name = expr.name;
 		MultOp();
 		code.ProcessOp(op);
 		Primary(rightOperand);
@@ -340,10 +341,9 @@ void Parser::ExprTail(ExprRec& expr)
 	{
 	case PLUS_OP:
 	case MINUS_OP:
-			leftOperand.kind = expr.kind;
-			leftOperand.val = expr.val;
-			leftOperand.name= expr.name;
-		op.kind = expr.kind;
+		leftOperand.kind = expr.kind;
+		leftOperand.val = expr.val;
+		leftOperand.name = expr.name;
 		AddOp();
 		code.ProcessOp(op);
 		Factor(rightOperand);
@@ -400,9 +400,8 @@ void Parser::RelOp()
 	}
 }
 
-void Parser::CondTail()
+void Parser::CondTail(ExprRec & expr, OpRec& op)
 {
-	ExprRec expr;
 	switch (NextToken())
 	{
 	case LT_OP:
@@ -412,7 +411,7 @@ void Parser::CondTail()
 	case EQ_OP:
 	case NE_OP:
 		RelOp();
-		// code.ProcessOp();
+		code.ProcessOp(op);
 		Expression(expr);
 		break;
 	case RBANANA:
@@ -423,15 +422,15 @@ void Parser::CondTail()
 	}
 }
 
-void Parser::FloatListTail()
+void Parser::FloatListTail(ExprRec & exprRec)
 {
 	switch (NextToken())
 	{
 	case COMMA:
 		Match(COMMA);
 		Match(FLOAT_LIT);
-		// code.FloatAppend();
-		FloatListTail();
+		code.FloatAppend(exprRec);
+		FloatListTail(exprRec);
 		break;
 	case RSTAPLE:
 		break;
@@ -439,23 +438,22 @@ void Parser::FloatListTail()
 		SyntaxError(NextToken(), "");
 	}
 }
-
-void Parser::FloatList()
+void Parser::FloatList(ExprRec & exprRec)
 {
 	Match(FLOAT_LIT);
-	// code.FloatAppend();
-	FloatListTail();
+	code.FloatAppend(exprRec);
+	FloatListTail(exprRec);
 }
 
-void Parser::IntListTail()
+void Parser::IntListTail(ExprRec & exprRec)
 {
 	switch (NextToken())
 	{
 	case COMMA:
 		Match(COMMA);
 		Match(INT_LIT);
-		// code.IntAppend();
-		IntListTail();
+		code.IntAppend(exprRec);
+		IntListTail(exprRec);
 		break;
 	case RSTAPLE:
 		break;
@@ -464,11 +462,11 @@ void Parser::IntListTail()
 	}
 }
 
-void Parser::IntList()
+void Parser::IntList(ExprRec & exprRec)
 {
 	Match(INT_LIT);
-	// code.IntAppend();
-	IntListTail();
+	code.IntAppend(exprRec);
+	IntListTail(exprRec);
 }
 
 void Parser::ForAssign()
@@ -477,16 +475,21 @@ void Parser::ForAssign()
 	Variable(expr);
 	Match(ASSIGN_OP);
 	Expression(expr);
-	// code.ForAssign();
-}
+	//code.ForAssign(expr);
 
-void Parser::ElseClause()
+}
+void Parser::ForAssign2()
+{
+	ExprRec expr;
+
+}
+void Parser::ElseClause(OpRec& op)
 {
 	switch (NextToken())
 	{
 	case ELSE_SYM:
 		Match(ELSE_SYM);
-		// code.ProcessElse();
+	  code.ProcessElse(op);
 		StmtList();
 		break;
 	case ENDSTMT_SYM:
@@ -496,21 +499,24 @@ void Parser::ElseClause()
 	}
 }
 
-void Parser::Condition()
+void Parser::Condition(OpRec& op)
 {
-	ExprRec expr;
-	Expression(expr);
-	CondTail();
-	// code.SetCondition();
+	ExprRec leftHandSide, rightHandSide;
+
+	Expression(leftHandSide);
+	CondTail(rightHandSide, op);
+	code.SetCondition(leftHandSide, rightHandSide);
 }
 
 void Parser::ForStmt()
 {
+	OpRec op;
+
 	Match(FOR_SYM);
 	Match(LBANANA);
 	ForAssign();
 	Match(SEMICOLON);
-	Condition();
+	Condition(op);
 	Match(SEMICOLON);
 	// code.ForUpdate();
 	ForAssign();
@@ -522,40 +528,47 @@ void Parser::ForStmt()
 
 void Parser::DoStmt()
 {
+	OpRec op;
+
 	Match(DO_SYM);
-	// code.DoLoopBegin();
+	code.DoLoopBegin();
 	StmtList();
 	Match(UNTIL_SYM);
 	Match(LBANANA);
-	Condition();
+	Condition(op);
 	Match(RBANANA);
-	// code.DoLoopEnd();
+  code.DoLoopEnd(op);
 	Match(SEMICOLON);
 }
 
 void Parser::WhileStmt()
 {
+	OpRec op;
+
 	Match(WHILE_SYM);
+	code.WhileLabeling();
 	Match(LBANANA);
-	Condition();
+	Condition(op);
 	Match(RBANANA);
-	// code.WhileBegin();
+	code.WhileBegin(op);
 	StmtList();
 	Match(ENDSTMT_SYM);
-	// code.WhileEnd();
+	code.WhileEnd();
 }
 
 void Parser::IfStmt()
 {
+	OpRec op;
 	Match(IF_SYM);
 	Match(LBANANA);
-	Condition();
+	Condition(op);
 	Match(RBANANA);
-	// code.ProcessIf();
+	code.ProcessIf(op);
 	StmtList();
-	ElseClause();
+	ElseClause(op);
+
 	Match(ENDSTMT_SYM);
-	// code.IfEnd();
+	code.IfEnd();
 }
 
 void Parser::ItemListTail()
@@ -584,9 +597,8 @@ void Parser::ItemList()
 	ItemListTail();
 }
 
-void Parser::VariableTail()
+void Parser::VariableTail(ExprRec & expr)
 {
-	ExprRec expr;
 	switch (NextToken())
 	{
 	case LSTAPLE:
@@ -652,14 +664,14 @@ void Parser::Variable(ExprRec& identifer)
 {
 	Match(ID);
 	identifer.name = scan.tokenBuffer;
-	VariableTail();
+	VariableTail(identifer);
 	code.ProcessVar(identifer);
 }
 
 void Parser::BreakStmt()
 {
 	Match(BREAK_SYM);
-	// code.Break();
+	code.Break();
 	Match(SEMICOLON);
 }
 

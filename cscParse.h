@@ -33,7 +33,7 @@ private:
 
 	void Match(Token t);
 
-	void ListType();
+	void ListType(ExprRec & exprRec);
 
 	void InitValue(ExprRec& exprRec);
 
@@ -69,21 +69,23 @@ private:
 
 	void RelOp();
 
-	void CondTail();
+	void CondTail(ExprRec & expr, OpRec& op);
 
-	void FloatListTail();
+	void FloatListTail(ExprRec & exprRec);
 
-	void FloatList();
+	void FloatList(ExprRec & exprRec);
 
-	void IntListTail();
+	void IntListTail(ExprRec & exprRec);
 
-	void IntList();
+	void IntList(ExprRec & exprRec);
 
 	void ForAssign();
 
-	void ElseClause();
+	void ForAssign2();
 
-	void Condition();
+	void ElseClause(OpRec& op);
+
+	void Condition(OpRec& op);
 
 	void ForStmt();
 
@@ -97,7 +99,7 @@ private:
 
 	void ItemList();
 
-	void VariableTail();
+	void VariableTail(ExprRec& exprRec);
 
 	void VarListTail();
 

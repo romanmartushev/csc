@@ -3,6 +3,7 @@
 :: Input/output testing.
 
 :A
+
 	int:   x0, x1;
 	float:  y0, y1;
 

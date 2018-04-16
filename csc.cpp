@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
    // Add appropriate extensions to file names.
 	outName = sourceName + ".asm";
 	listName = sourceName + ".lst";
-	sourceName += ".sy";
+	sourceName += ".cpy";
 
    // Open and initialize all files.
 	sourceFile.open(sourceName.data());

@@ -2,8 +2,9 @@
 #define SYMBOL
 
 #include <string>
+#include <vector>
 
-enum Type { Scribble, Int, Float };
+enum Type { Scribble, Int, Float, Float_Array, Int_Array };
 
 using namespace std;
 
@@ -16,9 +17,8 @@ public:
 	bool ArrayIndicator;
 	int NumberOfComponents;
 	float InitialValue;
-
+	vector <float> ArrayValues;
 	string stringValue;
-
 	Symbol(string Name, Type DataType);
 	Symbol(string Name);
 	Symbol();

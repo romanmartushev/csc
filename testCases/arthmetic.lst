@@ -6,68 +6,86 @@
  the MACC2 virtual computer.
  ___________________________________________
 
- March 26, 2018 at 08:18 PM
+ April 13, 2018 at 10:53 AM
  Source file: testCases/arthmetic.sy
 
  LINE #
                     LDA       R15,VARS
+                    LDA       R14,STRINGS
      1  :A
      2  :: This program is used to test arithmetic expression evaluations
      3  
-     4  int : x;
-     5  int : y;
-     6  int : z;
-     7  
-                    RDI       +0(R15)
-                    RDI       +2(R15)
-     8  :I x,y;
-                    WRNL      
-     9  :N;
-                    WRI       +0(R15)
-                    WRI       +2(R15)
-    10  :O x,y;
-                    WRNL      
-    11  :N;
-                    LD        R0,#5
+                    LD        R0,#1
+                    STO       R0,+0(R15)
+     4    int : x := 1;
+                    LD        R0,#2
+                    STO       R0,+2(R15)
+     5    int : y := 2;
+                    LD        R0,#0
                     STO       R0,+4(R15)
-    12  z := 5;
-                    WRI       +4(R15)
-    13  :O z;
-                    WRNL      
-    14  :N;
-    15  
-                    LD        R0,+0(R15)
-                    IA        R0,+2(R15)
-                    STO       R0,+6(R15)
-                    LD        R0,+6(R15)
+     6    int : z;
+     7    intarray[10] : a := [10,11,12];
+     8  
+     9    floatarray[2] : b := [3.2];
+    10  
+                    RDF       +30(R15)
+    11    :I b[1];
+    12  
+                    LD        R0,+2(R15)
+                    ID        R0,+0(R15)
+                    STO       R0,+34(R15)
+                    LD        R0,+34(R15)
+                    IA        R0,#6
+                    STO       R0,+36(R15)
+                    LD        R0,+36(R15)
                     STO       R0,+4(R15)
-    16  z := x+y;
-    17  
-                    WRI       +0(R15)
-                    WRI       +2(R15)
-                    WRI       +4(R15)
-    18  :O x,y,z;
-                    WRNL      
-    19  :N;
-                    WRI       #0
-    20  :O 0;
-    21  
-    22  :Z
+    13    z := y/x + 3 * 2;
+                    WRF       +30(R15)
+    14    :O b[1];
+    15  :Z
                     HALT      
+                    LABEL     STRINGS
                     LABEL     VARS
-                    SKIP      10
+                    INT    1
+                    INT    2
+                    INT    0
+                    INT      10
+                    INT      11
+                    INT      12
+                    INT      0
+                    INT      0
+                    INT      0
+                    INT      0
+                    INT      0
+                    INT      0
+                    INT      0
+                    REAL      3.200000
+                    REAL      0.000000
+                    INT    0
+                    INT    0
 
 
  _____________________________________________
- <><><><>   S Y M B O L   T A B L E   <><><><>
+ <><><><>  V A R I A B L E   T A B L E   <><><><>
 
  Relative
  Address      Identifier      Value      Type
  --------     ----------      -----      -----
-      0       x               0          1
-      2       y               0          1
-      4       z               0          1
-      6       Temp&1               5.71074e-36          1
+      0       x               1          1
+      2       y               2          1
+      4       z               2.75053e-34          1
+      6       a               -2.63857e+24          4
+     26       b               3.20488e-31          3
+     34       Temp&1               2.74898e-34          1
+     36       Temp&2               0          1
+ _____________________________________________
+
+ _____________________________________________
+ <><><><>  S C R I B B L E   T A B L E   <><><><>
+
+ Relative
+ Address      Identifier      Value      Type
+ --------     ----------      -----      -----
  _____________________________________________
 
  Normal successful compilation.
