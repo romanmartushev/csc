@@ -16,7 +16,7 @@ using namespace std;
 #include "cscSymbol.h"
 
 enum OpKind { PLUS, MINUS, MULTIPLY, DIVIDE };
-enum ExprKind { ID_EXPR, LITERAL_EXPR, TEMP_EXPR, INT_LITERAL_EXPR, FLOAT_LITERAL_EXPR, SCRIBBLE_LITERAL_EXPR };
+enum ExprKind { ID_EXPR, LITERAL_EXPR, TEMP_EXPR, INT_LITERAL_EXPR, FLOAT_LITERAL_EXPR, SCRIBBLE_LITERAL_EXPR, INT_ARRAY, FLOAT_ARRAY };
 
 struct OpRec // information about an operator
 {
@@ -33,6 +33,7 @@ struct ExprRec // information about a constant, variable, or
    float      val;    // used when kind is ID_EXPR or TEMP_EXPR or FLOAT_LITERAL_EXPR or INT_LITERAL_EXPR
    int size = 0; //Contains size of scribbles and arrays
    string stringVal; //Used in scribbles (strings)
+	 vector<float> ArrayValues;
 };
 
 class CodeGen
@@ -46,9 +47,8 @@ public:
 /* _____________________________________________________________________________
 */
 	void MakeEven(int& number);
-	void FloatGenInfix(const OpRec& op, const string& opnd);
 
-	void GetSymbolValue(ExprRec & e, string & s);
+	void GetSymbolValue(ExprRec & e, string & s, int arrayOffset = 0);
 	// sets the kind of incoming symbol to the previsouly declared type
 	// Returns the offset of a variable in the symbolTable
 
@@ -91,10 +91,10 @@ public:
 	void InitializeVar(ExprRec & exprRec);
 	// definition here
 
-	void FloatAppend();
+	void FloatAppend(ExprRec & exprRec);
 	// definition here
 
-	void IntAppend();
+	void IntAppend(ExprRec & exprRec);
 	// definition here
 
 	void ForAssign();

@@ -60,6 +60,18 @@ void CodeGen::Enter(const ExprRec & s)
 			symbol.InitialValue = s.val;
 			size = 4;
 		break;
+		case FLOAT_ARRAY:
+			symbol.DataType = Float_Array;
+			symbol.NumberOfComponents = s.size;
+			symbol.ArrayValues = s.ArrayValues;
+			size = s.size * 4;
+		break;
+		case INT_ARRAY:
+			symbol.DataType = Int_Array;
+			symbol.NumberOfComponents = s.size;
+			symbol.ArrayValues = s.ArrayValues;
+			size = s.size * 2;
+		break;
 		case SCRIBBLE_LITERAL_EXPR:
 			symbol.DataType = Scribble;
 			symbol.NumberOfComponents = s.size;
@@ -194,29 +206,24 @@ bool CodeGen::LookUp(const string & s)
 void CodeGen::Assign(ExprRec & target, ExprRec & source)
 {
 	string s;
-
-
-	//Used when trying to assign an integer to a float variable
-	/*if(target.kind == FLOAT_LITERAL_EXPR && source.kind == INT_LITERAL_EXPR)
-	{
-		source.name = GetTemp();
-		CheckId(source);
-
-		for(int i = 0; i < symbolTable.size(); i++)
-		{
-			if(symbolTable[i].Name == source.name)
-			{
-				symbolTable[i].DataType = Float;
-				break;
-			}
-		}
-	}*/
-
-
-	GetSymbolValue(source,s);
-	Generate("LD        ", "R0", s);
-	GetSymbolValue(target,s);
-	Generate("STO       ", "R0", s);
+	if(target.kind == INT_ARRAY){
+		GetSymbolValue(source,s);
+		Generate("LD        ", "R0", s);
+		int t = (int)(target.val*2);
+		GetSymbolValue(target,s,t);
+		Generate("STO       ", "R0", s);
+	}else if(target.kind == FLOAT_ARRAY){
+		GetSymbolValue(source,s);
+		Generate("LD        ", "R0", s);
+		int t = (int)(target.val*4);
+		GetSymbolValue(target,s,t);
+		Generate("STO       ", "R0", s);
+	}else{
+		GetSymbolValue(source,s);
+		Generate("LD        ", "R0", s);
+		GetSymbolValue(target,s);
+		Generate("STO       ", "R0", s);
+	}
 }
 
 void CodeGen::Finish()
@@ -242,14 +249,34 @@ void CodeGen::Finish()
 	Generate("LABEL     ", "VARS", "");
 	for(int i = 0; i < symbolTable.size(); i++)
 	{
-		/*if(symbolTable[i].DataType == Int)
+		if(symbolTable[i].DataType == Int)
 		{
-			Generate("INT    ",to_string(symbolTable[i].InitialValue), "");
-		}*/
+			Generate("INT    ",to_string((int)symbolTable[i].InitialValue), "");
+		}
 
 		if(symbolTable[i].DataType == Float)
 		{
 			Generate("REAL      ",to_string(symbolTable[i].InitialValue), "");
+		}
+		if(symbolTable[i].DataType == Float_Array)
+		{
+			while(symbolTable[i].ArrayValues.size() < symbolTable[i].NumberOfComponents){
+				symbolTable[i].ArrayValues.push_back(0);
+			}
+			for(int j = 0; j < symbolTable[i].NumberOfComponents; j++)
+			{
+				Generate("REAL      ",to_string(symbolTable[i].ArrayValues[j]), "");
+			}
+		}
+		if(symbolTable[i].DataType == Int_Array)
+		{
+			while(symbolTable[i].ArrayValues.size() < symbolTable[i].NumberOfComponents){
+				symbolTable[i].ArrayValues.push_back(0);
+			}
+			for(int j = 0; j < symbolTable[i].NumberOfComponents; j++)
+			{
+				Generate("INT      ",to_string((int)symbolTable[i].ArrayValues[j]), "");
+			}
 		}
 	}
 	outFile.close();
@@ -345,24 +372,9 @@ void CodeGen::GenInfix(ExprRec & e1, OpRec & op, ExprRec & e2, ExprRec& e)
 		}
 		else
 			Generate(operation, "R0", opnd);
-			
+
 		GetSymbolValue(e,opnd);
 		Generate("STO       ", "R0", opnd);
-	}
-}
-
-//Decides if the additional Int to Float method is needed. (Needed for all REAL number math)
-void CodeGen::FloatGenInfix(const OpRec& op, const string& opnd)
-{
-	string operation = ExtractOp(op);
-	if(operation[0] == 'F')
-	{
-		Generate("FLT       ", "R1", opnd);
-		Generate(operation, "R0", "R1");
-	}
-	else
-	{
-		Generate(operation, "R0", opnd);
 	}
 }
 
@@ -425,11 +437,23 @@ void CodeGen::ProcessOp(OpRec& o)
 void CodeGen::InputVar(ExprRec & inVar)
 {
 	string s;
-	GetSymbolValue(inVar,s);
-	if(inVar.kind == INT_LITERAL_EXPR)
+	int t;
+	if(inVar.kind == INT_ARRAY){
+		t = (int)inVar.val*2;
+		GetSymbolValue(inVar,s,t);
 		Generate("RDI       ", s, "");
-	if(inVar.kind == FLOAT_LITERAL_EXPR)
+	}else if(inVar.kind == FLOAT_ARRAY){
+		t = (int)inVar.val*4;
+		GetSymbolValue(inVar,s,t);
 		Generate("RDF       ", s, "");
+	}else{
+		GetSymbolValue(inVar,s);
+		if(inVar.kind == INT_LITERAL_EXPR)
+			Generate("RDI       ", s, "");
+		if(inVar.kind == FLOAT_LITERAL_EXPR)
+			Generate("RDF       ", s, "");
+	}
+
 }
 
 void CodeGen::Start()
@@ -441,23 +465,33 @@ void CodeGen::Start()
 void CodeGen::WriteExpr(ExprRec & outExpr)
 {
 	string s;
-	GetSymbolValue(outExpr,s);
-	if(outExpr.kind == INT_LITERAL_EXPR || outExpr.name == "int")
+	int t;
+	if(outExpr.kind == INT_ARRAY){
+		t = (int)outExpr.val*2;
+		GetSymbolValue(outExpr,s,t);
 		Generate("WRI       ", s, "");
-	if(outExpr.kind == FLOAT_LITERAL_EXPR || outExpr.name == "float")
+	}else if(outExpr.kind == FLOAT_ARRAY){
+		t = (int)outExpr.val*4;
+		GetSymbolValue(outExpr,s,t);
 		Generate("WRF       ", s, "");
-	if(outExpr.kind == SCRIBBLE_LITERAL_EXPR)
-		Generate("WRST      ", s, "");
+	}else{
+		GetSymbolValue(outExpr,s);
+		if(outExpr.kind == INT_LITERAL_EXPR || outExpr.name == "int")
+			Generate("WRI       ", s, "");
+		if(outExpr.kind == FLOAT_LITERAL_EXPR || outExpr.name == "float")
+			Generate("WRF       ", s, "");
+		if(outExpr.kind == SCRIBBLE_LITERAL_EXPR)
+			Generate("WRST      ", s, "");
+	}
 }
 
-void CodeGen::GetSymbolValue(ExprRec& e, string & s)
+void CodeGen::GetSymbolValue(ExprRec& e, string & s, int arrayOffset)
 {
 	int index;
 	string t;
 
 	if(e.name == "int"){
-		IntToAlpha(e.val, t);
-		s = "#" + t;
+		s = "#" + to_string((int)e.val);
 	}else if(e.name == "float"){
 		s = "#" + to_string(e.val);
 	}
@@ -475,13 +509,19 @@ void CodeGen::GetSymbolValue(ExprRec& e, string & s)
 					case Scribble:
 						e.kind = SCRIBBLE_LITERAL_EXPR;
 						break;
+					case Int_Array:
+						e.kind = INT_ARRAY;
+						break;
+					case Float_Array:
+						e.kind = FLOAT_ARRAY;
+						break;
 				}
 			}
 		}
 		if(e.kind == SCRIBBLE_LITERAL_EXPR)
 			s = "+" + to_string(symbolTable[index].RelativeAddress) + "(R14)";
 		else
-			s = "+" + to_string(symbolTable[index].RelativeAddress) + "(R15)";
+			s = "+" + to_string(symbolTable[index].RelativeAddress + arrayOffset) + "(R15)";
 	}
 }
 
@@ -493,35 +533,39 @@ void CodeGen::DefineVar(ExprRec & exprRec)
 void CodeGen::InitializeVar(ExprRec & exprRec)
 {
 	ExprRec newExpr;
-	if(exprRec.kind != SCRIBBLE_LITERAL_EXPR)
-	{
-		if(scan.tokenBuffer.length() != 0)
-			newExpr.val = stof(scan.tokenBuffer);
-		else
-			newExpr.val = 0;
-		CheckId(exprRec);
-		if(exprRec.kind == FLOAT_LITERAL_EXPR)
-			newExpr.name = "float";
+	if(exprRec.kind != FLOAT_ARRAY && exprRec.kind != INT_ARRAY){
+		if(exprRec.kind != SCRIBBLE_LITERAL_EXPR)
+		{
+			if(scan.tokenBuffer.length() != 0)
+				newExpr.val = stof(scan.tokenBuffer);
+			else
+				newExpr.val = 0;
+			CheckId(exprRec);
+			if(exprRec.kind == FLOAT_LITERAL_EXPR)
+				newExpr.name = "float";
+			else
+			{
+				newExpr.name = "int";
+				Assign(exprRec, newExpr);
+			}
+		}
 		else
 		{
-			newExpr.name = "int";
-			Assign(exprRec, newExpr);
+			exprRec.val = 0;
+			CheckId(exprRec);
 		}
-	}
-	else
-	{
-		exprRec.val = 0;
+		newExpr.val = exprRec.val;
+	}else{
 		CheckId(exprRec);
 	}
-	newExpr.val = exprRec.val;
 }
-void CodeGen::FloatAppend()
+void CodeGen::FloatAppend(ExprRec & exprRec)
 {
-	//Code here
+	exprRec.ArrayValues.push_back(stof(scan.tokenBuffer.data()));
 }
-void CodeGen::IntAppend()
+void CodeGen::IntAppend(ExprRec & exprRec)
 {
-	//Code here
+	exprRec.ArrayValues.push_back(stof(scan.tokenBuffer.data()));
 }
 void CodeGen::ForAssign()
 {

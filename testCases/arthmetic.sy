@@ -4,8 +4,12 @@
   int : x := 1;
   int : y := 2;
   int : z;
+  intarray[10] : a := [10,11,12];
 
-  z := y / x;
+  floatarray[2] : b := [3.2];
 
-  :O z;
+  :I b[1];
+
+  z := y/x + 3 * 2;
+  :O b[1];
 :Z
