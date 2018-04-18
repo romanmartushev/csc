@@ -1,8 +1,0 @@
-:A
-:: declare a variable
-int : x;
-
-::output zero
-:O 0;
-
-:Z
