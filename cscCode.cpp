@@ -90,7 +90,7 @@ void CodeGen::Enter(const ExprRec & s)
 				}
 			}
 			if(characterLocations.size() > 0){
-				stringOffset += s.size - characterLocations.size()*2 + 2;
+				stringOffset += s.size - characterLocations.size()*2;
 			}
 			else{
 				stringOffset += s.size + 2;
