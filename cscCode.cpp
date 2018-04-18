@@ -580,6 +580,7 @@ void CodeGen::InitializeVar(ExprRec & exprRec)
 		CheckId(exprRec);
 	}
 }
+
 void CodeGen::FloatAppend(ExprRec & exprRec)
 {
 	exprRec.ArrayValues.push_back(stof(scan.tokenBuffer.data()));
@@ -590,239 +591,20 @@ void CodeGen::IntAppend(ExprRec & exprRec)
 }
 void CodeGen::ForAssign()
 {
-	//Code here
-}
-void CodeGen::ForUpdate()
-{
-	//Code here
-}
-void CodeGen::ForEnd()
-{
-	//Code here
-}
-void CodeGen::SetCondition(ExprRec& leftHandSide, ExprRec& rightHandSide)
-{
-	string s;
-	GetSymbolValue(leftHandSide, s);
-	Generate("LD        ", "R0", s);
-	GetSymbolValue(rightHandSide, s);
-	Generate("IC        ", "R0", s);
-}
-void CodeGen::DoLoopBegin()
-{
-	//Code here
-}
-void CodeGen::DoLoopEnd()
-{
-	//Code here
-}
-void CodeGen::WhileBegin()
-{
-	//Code here
-}
-void CodeGen::WhileEnd()
-{
-	//Code here
-}
-void CodeGen::ProcessIf(OpRec& op)
-{
-	StatementCounter++;
-	Stack.push_back(StatementCounter);
-	switch (op.op)
-	{
-		case GE:
-			Generate("JLT       ", "IFEND" + to_string(Stack.back()), "");
-			break;
-		case GT:
-			Generate("JLE       ", "IFEND" + to_string(Stack.back()), "");
-			break;
-		case LE:
-			Generate("JGT       ", "IFEND" + to_string(Stack.back()), "");
-			break;
-		case LT:
-			Generate("JGE       ", "IFEND" + to_string(Stack.back()), "");
-			break;
-		case EQ:
-			Generate("JNE       ", "IFEND" + to_string(Stack.back()), "");
-			break;
-		case NE:
-			Generate("JEQ       ", "IFEND" + to_string(Stack.back()), "");
-			break;
-		break;
-	}
-}
-void CodeGen::ProcessElse()
-{
-	//Code here
-}
-void CodeGen::IfEnd()
-{
-	Generate("LABEL     ", "IFEND" + to_string(Stack.back()), "");
-	Stack.pop_back();
-}
-void CodeGen::Break()
-{
-	//Code here
-	int t;
-	if(outExpr.kind == INT_ARRAY){
-		t = (int)outExpr.val*2;
-		GetSymbolValue(outExpr,s,t);
-		Generate("WRI       ", s, "");
-	}else if(outExpr.kind == FLOAT_ARRAY){
-		t = (int)outExpr.val*4;
-		GetSymbolValue(outExpr,s,t);
-		Generate("WRF       ", s, "");
-	}else{
-		GetSymbolValue(outExpr,s);
-		if(outExpr.kind == INT_LITERAL_EXPR || outExpr.name == "int")
-			Generate("WRI       ", s, "");
-		if(outExpr.kind == FLOAT_LITERAL_EXPR || outExpr.name == "float")
-			Generate("WRF       ", s, "");
-		if(outExpr.kind == SCRIBBLE_LITERAL_EXPR)
-			Generate("WRST      ", s, "");
-	}
+
 }
 
-void CodeGen::GetSymbolValue(ExprRec& e, string & s, int arrayOffset)
-{
-	int index;
-	string t;
-
-	if(e.name == "int"){
-		s = "#" + to_string((int)e.val);
-	}else if(e.name == "float"){
-		s = "#" + to_string(e.val);
-	}
-	else{
-		for(int i = 0 ; i < symbolTable.size(); i++){
-			if(e.name == symbolTable[i].Name){
-				index = i;
-				switch(symbolTable[i].DataType){
-					case Int:
-						e.kind = INT_LITERAL_EXPR;
-						break;
-					case Float:
-						e.kind = FLOAT_LITERAL_EXPR;
-						break;
-					case Scribble:
-						e.kind = SCRIBBLE_LITERAL_EXPR;
-						break;
-					case Int_Array:
-						e.kind = INT_ARRAY;
-						break;
-					case Float_Array:
-						e.kind = FLOAT_ARRAY;
-						break;
-				}
-			}
-		}
-		if(e.kind == SCRIBBLE_LITERAL_EXPR)
-			s = "+" + to_string(symbolTable[index].RelativeAddress) + "(R14)";
-		else
-			s = "+" + to_string(symbolTable[index].RelativeAddress + arrayOffset) + "(R15)";
-	}
-}
-
-
-void CodeGen::DefineVar(ExprRec & exprRec)
-{
-	exprRec.name = scan.tokenBuffer;
-}
-void CodeGen::InitializeVar(ExprRec & exprRec)
-{
-	ExprRec newExpr;
-	if(exprRec.kind != FLOAT_ARRAY && exprRec.kind != INT_ARRAY){
-		if(exprRec.kind != SCRIBBLE_LITERAL_EXPR)
-		{
-			if(scan.tokenBuffer.length() != 0)
-				newExpr.val = stof(scan.tokenBuffer);
-			else
-				newExpr.val = 0;
-			CheckId(exprRec);
-			if(exprRec.kind == FLOAT_LITERAL_EXPR)
-				newExpr.name = "float";
-			else
-			{
-				newExpr.name = "int";
-				Assign(exprRec, newExpr);
-			}
-		}
-		else
-		{
-			exprRec.val = 0;
-			CheckId(exprRec);
-		}
-		newExpr.val = exprRec.val;
-	}else{
-		CheckId(exprRec);
-	}
-}
-void CodeGen::FloatAppend(ExprRec & exprRec)
-{
-	exprRec.ArrayValues.push_back(stof(scan.tokenBuffer.data()));
-}
-void CodeGen::IntAppend(ExprRec & exprRec)
-{
-	exprRec.ArrayValues.push_back(stof(scan.tokenBuffer.data()));
-}
-void CodeGen::ForAssign(ExprRec& expr)
-{
-	ExprRec target, source;
-
-	target.name = expr.name;
-	source.name = "int";
-	source.val = expr.val;
-
-	if(source.val !=0){
-		std::cout << source.val << '\n';
-	Assign(target,source);
-}
-
-	//Code here
-	//Generate("LABEL     ", "BEG", "");
-}
 void CodeGen::ForLabeling()
 {
 
 }
-void CodeGen::ForUpdate(OpRec& op)
+void CodeGen::ForUpdate()
 {
-	int type = 4;
-	StackType.push_back(type);
-	StatementCounter++;
-	Stack.push_back(StatementCounter);
-	Generate("LABEL     ", "FBEG" + to_string(Stack.back()), "");
-
-	switch (op.op)
-	{
-		case GE:
-			Generate("JLE       ", "FEND" + to_string(Stack.back()), "");
-			break;
-		case GT:
-			Generate("JLT       ", "FEND" + to_string(Stack.back()), "");
-			break;
-		case LE:
-			Generate("JGE       ", "FEND" + to_string(Stack.back()), "");
-			break;
-		case LT:
-			Generate("JGT       ", "FEND" + to_string(Stack.back()), "");
-			break;
-		case EQ:
-			Generate("JEQ       ", "FEND" + to_string(Stack.back()), "");
-			break;
-		case NE:
-			Generate("JNE       ", "FEND" + to_string(Stack.back()), "");
-			break;
-		break;
-	}
 
 }
 void CodeGen::ForEnd()
 {
-	Generate("JMP       ", "FBEG" + to_string(Stack.back()), "");
-	Generate("LABEL     ", "FEND" + to_string(Stack.back()), "");
-	Stack.pop_back();
-	StackType.pop_back();
+
 }
 void CodeGen::SetCondition(ExprRec& leftHandSide, ExprRec& rightHandSide)
 {
@@ -913,8 +695,6 @@ void CodeGen::ProcessIf(OpRec& op)
 {
 	StatementCounter2++;
 	ColtonWasHere.push_back(StatementCounter2);
-
-
 	switch (op.op)
 	{
 		case GE:
@@ -971,7 +751,6 @@ void CodeGen::IfEnd()
 {
 	Generate("LABEL     ", "IFEND" + to_string(ColtonWasHere.back()), "");
 	ColtonWasHere.pop_back();
-
 }
 void CodeGen::Break()
 {
