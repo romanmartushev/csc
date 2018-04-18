@@ -475,16 +475,21 @@ void Parser::ForAssign()
 	Variable(expr);
 	Match(ASSIGN_OP);
 	Expression(expr);
-	// code.ForAssign();
-}
+	//code.ForAssign(expr);
 
-void Parser::ElseClause()
+}
+void Parser::ForAssign2()
+{
+	ExprRec expr;
+
+}
+void Parser::ElseClause(OpRec& op)
 {
 	switch (NextToken())
 	{
 	case ELSE_SYM:
 		Match(ELSE_SYM);
-		// code.ProcessElse();
+	  code.ProcessElse(op);
 		StmtList();
 		break;
 	case ENDSTMT_SYM:
@@ -526,13 +531,13 @@ void Parser::DoStmt()
 	OpRec op;
 
 	Match(DO_SYM);
-	// code.DoLoopBegin();
+	code.DoLoopBegin();
 	StmtList();
 	Match(UNTIL_SYM);
 	Match(LBANANA);
 	Condition(op);
 	Match(RBANANA);
-	// code.DoLoopEnd();
+  code.DoLoopEnd(op);
 	Match(SEMICOLON);
 }
 
@@ -541,13 +546,14 @@ void Parser::WhileStmt()
 	OpRec op;
 
 	Match(WHILE_SYM);
+	code.WhileLabeling();
 	Match(LBANANA);
 	Condition(op);
 	Match(RBANANA);
-	// code.WhileBegin();
+	code.WhileBegin(op);
 	StmtList();
 	Match(ENDSTMT_SYM);
-	// code.WhileEnd();
+	code.WhileEnd();
 }
 
 void Parser::IfStmt()
@@ -559,7 +565,8 @@ void Parser::IfStmt()
 	Match(RBANANA);
 	code.ProcessIf(op);
 	StmtList();
-	ElseClause();
+	ElseClause(op);
+
 	Match(ENDSTMT_SYM);
 	code.IfEnd();
 }
@@ -664,7 +671,7 @@ void Parser::Variable(ExprRec& identifer)
 void Parser::BreakStmt()
 {
 	Match(BREAK_SYM);
-	// code.Break();
+	code.Break();
 	Match(SEMICOLON);
 }
 

@@ -1,0 +1,9 @@
+:A
+:: decleration of variables
+
+::int : x := 3;
+float : y := 5.5;
+
+:O y;
+
+:Z

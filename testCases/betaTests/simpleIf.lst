@@ -1,0 +1,81 @@
+
+
+ : S C O P Y   C O M P I L E R   L I S T I N G
+
+ Generated code is SAM assembly language for
+ the MACC2 virtual computer.
+ ___________________________________________
+
+ April 16, 2018 at 09:39 AM
+ Source file: testCases/betaTests/simpleIf.cpy
+
+ LINE #
+                    LDA       R15,VARS
+                    LDA       R14,STRINGS
+     1  :A
+     2  
+                    LD        R0,#5
+                    STO       R0,+0(R15)
+     3  int : x := 5;
+                    LD        R0,#10
+                    STO       R0,+2(R15)
+     4  int : y := 10;
+                    LD        R0,#0
+                    STO       R0,+4(R15)
+     5  int : z;
+     6  
+                    RDI       +4(R15)
+                    RDI       +2(R15)
+     7  :I z, y;
+                    LD        R0,+4(R15)
+                    IC        R0,+2(R15)
+                    JLE       IFEND1
+     8  :? (z > y)
+                    WRI       #5
+                    WRST      +0(R14)
+     9  	:O 5, "Hi";
+                    LABEL     IFEND1
+    10  :.
+                    LD        R0,+2(R15)
+                    IC        R0,+4(R15)
+                    JLE       IFEND2
+    11  :? (y > z)
+                    WRI       #5
+                    WRST      +2(R14)
+    12  	:O 5, "BYE";
+                    LABEL     IFEND2
+    13  :.
+    14  
+    15  :Z
+                    HALT      
+                    LABEL     STRINGS
+                    STRING    "Hi"
+                    STRING    "BYE"
+                    LABEL     VARS
+                    INT    5
+                    INT    10
+                    INT    0
+
+
+ _____________________________________________
+ <><><><>  V A R I A B L E   T A B L E   <><><><>
+
+ Relative
+ Address      Identifier      Value      Type
+ --------     ----------      -----      -----
+      0       x               5          1
+      2       y               10          1
+      4       z               8.95813e-39          1
+ _____________________________________________
+
+ _____________________________________________
+ <><><><>  S C R I B B L E   T A B L E   <><><><>
+
+ Relative
+ Address      Identifier      Value      Type
+ --------     ----------      -----      -----
+      0       Temp&1               2.78806e-24          0
+      2       Temp&2               2.78804e-24          0
+ _____________________________________________
+
+ Normal successful compilation.

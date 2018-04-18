@@ -1,0 +1,90 @@
+
+
+ : S C O P Y   C O M P I L E R   L I S T I N G
+
+ Generated code is SAM assembly language for
+ the MACC2 virtual computer.
+ ___________________________________________
+
+ March 28, 2018 at 08:11 AM
+ Source file: testCases/TestSoFar.sy
+
+ LINE #
+                    LDA       R15,VARS
+     1  :A
+     2  ::start program
+     3  :/Created by Roman Martushev. 03/07/18
+     4  Used to Check all Tokens being processed
+     5  correctly in the Scanner/:
+     6  
+     7  :: declaring all simple vars
+     8  int : a, d;
+     9  float : b := 4, e := 5;
+    10  
+    11  scribble : c;
+    12  
+    13  :: declaring all arrays
+    14  ::intarray[3] : d;
+    15  ::floatarray[15] : e;
+                    WRF       +4(R15)
+    16  :O b;
+                    LD        R0,#5
+                    STO       R0,+0(R15)
+    17  a := 5;
+                    LD        R0,#4
+                    STO       R0,+4(R15)
+    18  b := 4.3;
+                    LD        R0,#5
+                    STO       R0,+4(R15)
+    19  b := 5e1;
+                    LD        R0,#2
+                    STO       R0,+4(R15)
+    20  b := 2e-9;
+                    LD        R0,#0
+                    STO       R0,+4(R15)
+    21  b := 0.4E3;
+                    LD        R0,+0(R15)
+                    IM        R0,+4(R15)
+                    STO       R0,+12(R15)
+                    LD        R0,+12(R15)
+                    IM        R0,+4(R15)
+                    STO       R0,+14(R15)
+                    LD        R0,+14(R15)
+                    STO       R0,+4(R15)
+    22  b := a * b * b;
+    23  ::c := "The Sum is: ";
+    24  
+    25  ::output statement and newline char
+                    WRI       +0(R15)
+                    WRF       +4(R15)
+                    LD        R0,+0(R15)
+                    IA        R0,+4(R15)
+                    STO       R0,+16(R15)
+                    WRI       +16(R15)
+                    WRI       #3
+    26  :O a,b, a + b, 3;
+    27  
+    28  ::end program
+    29  :Z
+                    HALT      
+                    LABEL     VARS
+                    SKIP      18
+
+
+ _____________________________________________
+ <><><><>   S Y M B O L   T A B L E   <><><><>
+
+ Relative
+ Address      Identifier      Value      Type
+ --------     ----------      -----      -----
+      0       a               0          1
+      2       d               0          1
+      4       b               4          2
+      8       e               5          2
+     12       c               0          0
+     12       Temp&1               8.90572e-39          1
+     14       Temp&2               8.90572e-39          1
+     16       Temp&3               6.72623e-44          1
+ _____________________________________________
+
+ Normal successful compilation.

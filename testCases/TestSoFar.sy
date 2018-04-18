@@ -1,0 +1,29 @@
+:A
+::start program
+:/Created by Roman Martushev. 03/07/18
+Used to Check all Tokens being processed
+correctly in the Scanner/:
+
+:: declaring all simple vars
+int : a, d;
+float : b := 4, e := 5;
+
+scribble : c;
+
+:: declaring all arrays
+::intarray[3] : d;
+::floatarray[15] : e;
+:O b;
+a := 5;
+b := 4.3;
+b := 5e1;
+b := 2e-9;
+b := 0.4E3;
+b := a * b * b;
+::c := "The Sum is: ";
+
+::output statement and newline char
+:O a,b, a + b, 3;
+
+::end program
+:Z

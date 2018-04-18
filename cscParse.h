@@ -81,7 +81,9 @@ private:
 
 	void ForAssign();
 
-	void ElseClause();
+	void ForAssign2();
+
+	void ElseClause(OpRec& op);
 
 	void Condition(OpRec& op);
 
