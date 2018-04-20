@@ -28,7 +28,6 @@ fi
 if [[ "$2" == "-b" ]] ; then
 	./csc testCases/betaTests/$1
 	cd testCases/betaTests/
-	ls
 	if [ -f $file.asm ]; then
 
 	cp $file.asm ../../sam_folder

@@ -63,12 +63,13 @@ void Parser::ListType(ExprRec & exprRec)
 
 void Parser::InitValue(ExprRec& exprRec)
 {
+	ExprRec expr;
 	switch (NextToken())
 	{
 	case INT_LIT:
 	case FLOAT_LIT:
 	case SCRIBBLE_LIT:
-		Literal(exprRec);
+		Literal(expr);
 		code.ProcessLit(exprRec);
 		break;
 	case LSTAPLE:
@@ -469,20 +470,17 @@ void Parser::IntList(ExprRec & exprRec)
 	IntListTail(exprRec);
 }
 
-void Parser::ForAssign()
+void Parser::ForAssign(ExprRec& expr, ExprRec& expr2)
 {
-	ExprRec expr;
+
 	Variable(expr);
+	cout << expr.name << " " << expr.kind << endl;
 	Match(ASSIGN_OP);
-	Expression(expr);
-	//code.ForAssign(expr);
-
+	Expression(expr2);
+	cout << expr2.name << " " << expr2.kind << endl;
+	code.ForAssign(expr, expr2);
 }
-void Parser::ForAssign2()
-{
-	ExprRec expr;
 
-}
 void Parser::ElseClause(OpRec& op)
 {
 	switch (NextToken())
@@ -508,22 +506,24 @@ void Parser::Condition(OpRec& op)
 	code.SetCondition(leftHandSide, rightHandSide);
 }
 
+
 void Parser::ForStmt()
 {
 	OpRec op;
-
+	ExprRec expr, expr2;
 	Match(FOR_SYM);
 	Match(LBANANA);
-	ForAssign();
+	ForAssign(expr, expr2);
+	code.ForBegin();
 	Match(SEMICOLON);
 	Condition(op);
 	Match(SEMICOLON);
-	// code.ForUpdate();
-	ForAssign();
+	code.ForUpdate(op);
+	ForAssign(expr2, expr);
 	Match(RBANANA);
 	StmtList();
 	Match(ENDSTMT_SYM);
-	// code.ForEnd();
+	code.ForEnd();
 }
 
 void Parser::DoStmt()

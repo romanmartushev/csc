@@ -79,9 +79,7 @@ private:
 
 	void IntList(ExprRec & exprRec);
 
-	void ForAssign();
-
-	void ForAssign2();
+	void ForAssign(ExprRec& expr, ExprRec& expr2);
 
 	void ElseClause(OpRec& op);
 

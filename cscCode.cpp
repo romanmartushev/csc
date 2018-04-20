@@ -93,7 +93,7 @@ void CodeGen::Enter(const ExprRec & s)
 				stringOffset += s.size - characterLocations.size()*2;
 			}
 			else{
-				stringOffset += s.size + 2;
+				stringOffset += s.size;
 			}
 			MakeEven(stringOffset);
 		break;
@@ -589,30 +589,90 @@ void CodeGen::IntAppend(ExprRec & exprRec)
 {
 	exprRec.ArrayValues.push_back(stof(scan.tokenBuffer.data()));
 }
-void CodeGen::ForAssign()
+void CodeGen::ForAssign(ExprRec& expr, ExprRec& expr2)
 {
-
+	Assign(expr,expr2);
+}
+void CodeGen::ForBegin()
+{
+	int type = 4;
+	StackType.push_back(type);
+	StatementCounter++;
+	Stack.push_back(StatementCounter);
+	Generate("LABEL     ", "FUP" + to_string(Stack.back()), "");
 }
 
-void CodeGen::ForLabeling()
+void CodeGen::ForUpdate(OpRec& op)
 {
+	switch (op.op)
+	{
+		case GE:
+			Generate("JLT       ", "FEND" + to_string(Stack.back()), "");
+			break;
+		case GT:
+			Generate("JLE       ", "FEND" + to_string(Stack.back()), "");
+			break;
+		case LE:
+			Generate("JGT       ", "FEND" + to_string(Stack.back()), "");
+			break;
+		case LT:
+			Generate("JGE       ", "FEND" + to_string(Stack.back()), "");
+			break;
+		case EQ:
+			Generate("JNE       ", "FEND" + to_string(Stack.back()), "");
+			break;
+		case NE:
+			Generate("JEQ       ", "FEND" + to_string(Stack.back()), "");
+			break;
+		break;
+	}
 
-}
-void CodeGen::ForUpdate()
-{
 
 }
 void CodeGen::ForEnd()
 {
+	Generate("JMP       ", "FUP" + to_string(Stack.back()), "");
+	Generate("LABEL     ", "FEND" + to_string(Stack.back()), "");
 
+	Stack.pop_back();
+	StackType.pop_back();
 }
 void CodeGen::SetCondition(ExprRec& leftHandSide, ExprRec& rightHandSide)
 {
-	string s;
-	GetSymbolValue(leftHandSide, s);
-	Generate("LD        ", "R0", s);
-	GetSymbolValue(rightHandSide, s);
-	Generate("IC        ", "R0", s);
+	string s, t;
+
+	if(leftHandSide.kind == INT_LITERAL_EXPR && rightHandSide.kind == INT_LITERAL_EXPR)
+	{
+		GetSymbolValue(leftHandSide, s);
+		Generate("LD        ", "R0", s);
+		GetSymbolValue(rightHandSide, s);
+		Generate("IC        ", "R0", s);	
+	}
+	
+	if(leftHandSide.kind == FLOAT_LITERAL_EXPR && rightHandSide.kind == FLOAT_LITERAL_EXPR)
+	{
+		GetSymbolValue(leftHandSide, s);
+		Generate("LD        ", "R0", s);
+		GetSymbolValue(rightHandSide, s);
+		Generate("FC        ", "R0", s);	
+	}
+
+	if(leftHandSide.kind == INT_LITERAL_EXPR && rightHandSide.kind == FLOAT_LITERAL_EXPR)
+	{
+		GetSymbolValue(leftHandSide, s);
+		Generate("FLT       ", "R1", s);
+		GetSymbolValue(rightHandSide, s);
+		Generate("FC        ", "R1", s);	
+	}
+
+	if(leftHandSide.kind == FLOAT_LITERAL_EXPR && rightHandSide.kind == INT_LITERAL_EXPR)
+	{
+		GetSymbolValue(leftHandSide, s);
+		Generate("LD        ", "R0", s);
+		GetSymbolValue(rightHandSide, s);
+		Generate("FLT       ", "R2", s);
+		Generate("FC        ", "R0", "R2");	
+	}
 }
 void CodeGen::DoLoopBegin()
 {
