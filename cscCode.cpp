@@ -557,10 +557,14 @@ void CodeGen::InitializeVar(ExprRec & exprRec)
 	if(exprRec.kind != FLOAT_ARRAY && exprRec.kind != INT_ARRAY){
 		if(exprRec.kind != SCRIBBLE_LITERAL_EXPR)
 		{
-			if(scan.tokenBuffer.length() != 0)
+			if(scan.tokenBuffer.length() != 0){
 				newExpr.val = stof(scan.tokenBuffer);
-			else
+				exprRec.val = stof(scan.tokenBuffer);
+			}
+			else{
 				newExpr.val = 0;
+				exprRec.val = 0;
+			}
 			CheckId(exprRec);
 			if(exprRec.kind == FLOAT_LITERAL_EXPR)
 				newExpr.name = "float";
@@ -646,15 +650,15 @@ void CodeGen::SetCondition(ExprRec& leftHandSide, ExprRec& rightHandSide)
 		GetSymbolValue(leftHandSide, s);
 		Generate("LD        ", "R0", s);
 		GetSymbolValue(rightHandSide, s);
-		Generate("IC        ", "R0", s);	
+		Generate("IC        ", "R0", s);
 	}
-	
+
 	if(leftHandSide.kind == FLOAT_LITERAL_EXPR && rightHandSide.kind == FLOAT_LITERAL_EXPR)
 	{
 		GetSymbolValue(leftHandSide, s);
 		Generate("LD        ", "R0", s);
 		GetSymbolValue(rightHandSide, s);
-		Generate("FC        ", "R0", s);	
+		Generate("FC        ", "R0", s);
 	}
 
 	if(leftHandSide.kind == INT_LITERAL_EXPR && rightHandSide.kind == FLOAT_LITERAL_EXPR)
@@ -662,7 +666,7 @@ void CodeGen::SetCondition(ExprRec& leftHandSide, ExprRec& rightHandSide)
 		GetSymbolValue(leftHandSide, s);
 		Generate("FLT       ", "R1", s);
 		GetSymbolValue(rightHandSide, s);
-		Generate("FC        ", "R1", s);	
+		Generate("FC        ", "R1", s);
 	}
 
 	if(leftHandSide.kind == FLOAT_LITERAL_EXPR && rightHandSide.kind == INT_LITERAL_EXPR)
@@ -671,7 +675,7 @@ void CodeGen::SetCondition(ExprRec& leftHandSide, ExprRec& rightHandSide)
 		Generate("LD        ", "R0", s);
 		GetSymbolValue(rightHandSide, s);
 		Generate("FLT       ", "R2", s);
-		Generate("FC        ", "R0", "R2");	
+		Generate("FC        ", "R0", "R2");
 	}
 }
 void CodeGen::DoLoopBegin()

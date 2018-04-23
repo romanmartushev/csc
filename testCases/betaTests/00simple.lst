@@ -6,25 +6,28 @@
  the MACC2 virtual computer.
  ___________________________________________
 
- April 06, 2018 at 08:43 AM
- Source file: testCases/betaTests/00simple.sy
+ April 23, 2018 at 08:11 AM
+ Source file: testCases/betaTests/00simple.cpy
 
  LINE #
-     1  ::  00simple.csc
-     2  :://  One of the simplest MNC programs possible.
-     3  
                     LDA       R15,VARS
                     LDA       R14,STRINGS
-     4  :A
+     1  :A
                     LD        R0,#0
                     STO       R0,+0(R15)
-     5  int : x;
+     2  int: x;
+     3  :: Our grammar requires at least one declaration
                     WRI       #8
-     6  :O 8;
+     4  :O 8;
+                    WRNL      
+     5  :N;
+                    WRI       +0(R15)
+     6  :O x;
      7  :Z
                     HALT      
                     LABEL     STRINGS
                     LABEL     VARS
+                    INT    0
 
 
  _____________________________________________
@@ -33,7 +36,7 @@
  Relative
  Address      Identifier      Value      Type
  --------     ----------      -----      -----
-      0       x               1.15243e-41          1
+      0       x               0          1
  _____________________________________________
 
  _____________________________________________
