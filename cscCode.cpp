@@ -824,7 +824,6 @@ void CodeGen::WhileBegin(OpRec& op)
 			Generate("JEQ       ", "WHLEND" + to_string(Stack.back()), "");
 			break;
 		default:
-			//Generate("OH SHIT","","");
 			break;
 	}
 
