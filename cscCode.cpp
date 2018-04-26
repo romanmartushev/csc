@@ -421,8 +421,8 @@ void CodeGen::GenInfix(ExprRec & e1, OpRec & op, ExprRec & e2, ExprRec& e)
 	else
 	{
 		e.name = GetTemp();
-		CheckId(e);
 		e.val = 0;
+		CheckId(e);
 		GetSymbolValue(e1,opnd);
 
 		if(e1.kind == FLOAT_LITERAL_EXPR || e2.kind == FLOAT_LITERAL_EXPR)
