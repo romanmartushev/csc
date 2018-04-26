@@ -1,0 +1,15 @@
+:A
+:: This program is used to test arithmetic expression evaluations
+
+  int : x := 1;
+  int : y := 2;
+  int : z;
+  intarray[10] : a := [10,11,12];
+
+  floatarray[2] : b := [3.2];
+
+  :I b[1];
+
+  z := y/x + 3 * 2;
+  :O b[1];
+:Z

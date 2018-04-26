@@ -1,0 +1,52 @@
+
+   SAM 2018 Assembler Listing
+
+   April 2, 2018 at 10:21 A.M.
+   SOURCE FILE: testCases/Scribbles.asm
+
+        LN    LC
+         0     0: LDA       R15,VARS
+         1     4: LD        R0,#0
+         2     8: STO       R0,+26(R15)
+         3     C: LD        R0,#47
+         4    10: STO       R0,+28(R15)
+         5    14: LD        R0,#8
+         6    18: STO       R0,+30(R15)
+         7    1C: LD        R0,#5
+         8    20: STO       R0,+32(R15)
+         9    24: LD        R0,#3
+        10    28: STO       R0,+34(R15)
+        11    2C: WRST      +0(R15)
+        12    30: WRNL      
+        13    32: WRI       +30(R15)
+        14    36: WRNL      
+        15    38: WRST      +10(R15)
+        16    3C: WRNL      
+        17    3E: WRI       +28(R15)
+        18    42: WRNL      
+        19    44: WRF       +34(R15)
+        20    48: WRNL      
+        21    4A: WRST      +6(R15)
+        22    4E: WRNL      
+        23    50: WRI       +28(R15)
+        24    54: WRNL      
+        25    56: HALT      
+        26    58: LABEL     VARS
+        27    58: STRING    "hello"
+        28    5E: STRING    "world"
+        29    64: STRING    "HELLOAAAAAAAAA"
+
+
+MACC Memory Hexadecimal Dump
+
+ ADDR |   0   1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
+------+----------------------------------------------------------------
+    0 |  9F  90  00  58  88  30  00  00  90  2F  00  1A  88  30  00  2F
+   10 |  90  2F  00  1C  88  30  00  08  90  2F  00  1E  88  30  00  05
+   20 |  90  2F  00  20  88  30  00  03  90  2F  00  22  D4  AF  00  00
+   30 |  D5  80  D0  2F  00  1E  D5  80  D4  AF  00  0A  D5  80  D0  2F
+   40 |  00  1C  D5  80  D0  AF  00  22  D5  80  D4  AF  00  06  D5  80
+   50 |  D0  2F  00  1C  D5  80  F8  00  68  65  6C  6C  6F  00  77  6F
+   60 |  72  6C  64  00  48  45  4C  4C  4F  41  41  41  41  41  41  41
+   70 |  41  41  00  41
+

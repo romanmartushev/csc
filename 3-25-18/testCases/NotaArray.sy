@@ -1,0 +1,13 @@
+:A
+:: declare a variable
+int : x;
+int : y;
+int : z;
+float : b;
+float : c;
+::input zero
+:I b;
+::output zero
+
+:O b;
+:Z
