@@ -46,6 +46,8 @@ public:
 	vector<int> Stack;
 	vector<int> ColtonWasHere;
 	vector<int> StackType;
+	bool StringCmprUsed = false, StringCpyUsed = false;
+
 	CodeGen();
 	// Initializes the code generator;
 

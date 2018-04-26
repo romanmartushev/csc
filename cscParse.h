@@ -67,7 +67,7 @@ private:
 
 	void Factor(ExprRec& expr);
 
-	void RelOp();
+	void RelOp(OpRec& op);
 
 	void CondTail(ExprRec & expr, OpRec& op);
 

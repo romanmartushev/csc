@@ -1,8 +1,0 @@
-:A
-:: declare a variable
-int : x;
-
-:: type compatiblity error 
-x[0]:=1;
-
-:Z

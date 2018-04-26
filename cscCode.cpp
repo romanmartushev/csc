@@ -75,27 +75,31 @@ void CodeGen::Enter(const ExprRec & s)
 		case SCRIBBLE_LITERAL_EXPR:
 			symbol.DataType = Scribble;
 			symbol.NumberOfComponents = s.size;
-			symbol.stringValue = s.stringVal;
+			if(s.stringVal == "")
+				symbol.stringValue = " ";
+			else
+				symbol.stringValue = s.stringVal;
 			symbol.RelativeAddress = stringOffset;
-			vector<int> characterLocations;
 	    for(int i = 0; i < s.stringVal.length(); i++){
-        if(s.stringVal[i] == ':'){
-					if(isdigit(s.stringVal[i+1]) && isdigit(s.stringVal[i+2]) && isdigit(s.stringVal[i+3])){
-						characterLocations.push_back(i);
-					}
-					if(s.stringVal[i+1] == ':'){
-						characterLocations.push_back(i);
-						i++;
-					}
+        	if(s.stringVal[i] == ':'){
+				if(isdigit(s.stringVal[i+1]) && isdigit(s.stringVal[i+2]) && isdigit(s.stringVal[i+3])){
+					stringOffset = stringOffset - 3;
+				}
+				else if(s.stringVal[i+1] == ':'){
+					stringOffset = stringOffset;
+					i++;
+				}else{
+					stringOffset = stringOffset - 1;
 				}
 			}
-			if(characterLocations.size() > 0){
-				stringOffset += s.size - characterLocations.size()*2;
-			}
-			else{
-				stringOffset += s.size;
-			}
-			MakeEven(stringOffset);
+		}
+		if(s.size % 2 == 0){
+			stringOffset += s.size+1;
+		}
+		else{
+			stringOffset += s.size;
+		}
+		MakeEven(stringOffset);
 		break;
 	}
 	symbol.Name = s.name;
@@ -218,7 +222,16 @@ void CodeGen::Assign(ExprRec & target, ExprRec & source)
 		int t = (int)(target.val*4);
 		GetSymbolValue(target,s,t);
 		Generate("STO       ", "R0", s);
-	}else{
+	}else if(target.kind == SCRIBBLE_LITERAL_EXPR){
+		StringCpyUsed = true;
+
+		GetSymbolValue(target, s);
+		Generate("LD        ", "R0", s);
+		GetSymbolValue(source, s);
+		Generate("LD        ", "R1", s);
+		Generate("JSR       ", "R7", "STRCPY");
+	}
+	else{
 		GetSymbolValue(source,s);
 		Generate("LD        ", "R0", s);
 		GetSymbolValue(target,s);
@@ -226,21 +239,74 @@ void CodeGen::Assign(ExprRec & target, ExprRec & source)
 	}
 }
 
+
 void CodeGen::Finish()
 {
 	int skipSize, memoryUsedByStrings = 0;
 
 	listFile.width(6);
 	listFile << ++scan.lineNumber << "  " << scan.lineBuffer << endl;
+
 	Generate("HALT      ", "", "");
+
+	if(StringCmprUsed)
+	{
+		Generate("LABEL     ", "STRCMP", "");
+		Generate("LD        ", "R0", "*R4");
+		Generate("SRZ       ", "R0", "8");
+
+		Generate("LD        ", "R1", "*R5");
+		Generate("SRZ       ", "R1", "8");
+
+		Generate("IC        ", "R0", "#0");
+		Generate("JEQ       ", "ENDCMP", "");
+		Generate("IC        ", "R1", "#0");
+		Generate("JEQ       ", "ENDCMP", "");
+		Generate("IC        ", "R0", "R1");
+		Generate("IA        ", "R4", "#1");
+		Generate("IA        ", "R5", "#1");
+		Generate("JEQ       ", "STRCMP", "");
+		Generate("JMP       ", "*R7", "");
+
+		Generate("LABEL     ", "ENDCMP", "");
+		Generate("IC        ", "R0", "R1");
+		Generate("JMP       ", "*R7", "");
+	}
+
+	if(StringCpyUsed)
+	{
+		Generate("LABEL     ", "STRCPY", "");
+		Generate("LD        ", "R0", "*R4");
+		Generate("SRZ       ", "R0", "8");
+
+		Generate("LD        ", "R1", "*R5");
+		Generate("SRZ       ", "R1", "8");
+
+		// Generate("IC        ", "R0", "#0");
+		// Generate("JEQ       ", "ENDCPY", "");
+		Generate("IC        ", "R1", "#0");
+		Generate("JEQ       ", "ENDCPY", "");
+		Generate("IC        ", "R0", "R1");
+		Generate("STO       ", "R0", "R1");
+		// Generate("IA        ", "R4", "#1");
+		// Generate("IA        ", "R5", "#1");
+		Generate("JMP       ", "STRCPY", "");
+		Generate("JMP       ", "*R7", "");
+
+		Generate("LABEL     ", "ENDCPY", "");
+		Generate("IC        ", "R0", "R1");
+		Generate("JMP       ", "*R7", "");
+	}
+
 	Generate("LABEL     ", "STRINGS", "");
+
 	for(int i = 0; i < symbolTable.size(); i++)
 	{
 		if(symbolTable[i].DataType == Scribble)
 		{
-			Generate("STRING    ", "\"" + symbolTable[i].stringValue + "\"", "");
+			Generate("STRING    ", '"' + symbolTable[i].stringValue +'"', "");
 			if(symbolTable[i].stringValue.length() != symbolTable[i].NumberOfComponents){
-				skipSize = (symbolTable[i].NumberOfComponents - symbolTable[i].stringValue.length()-1);
+				skipSize = (symbolTable[i].NumberOfComponents - symbolTable[i].stringValue.length());
 				MakeEven(skipSize);
 				Generate("SKIP      ", to_string(skipSize), "");
 			}
@@ -439,8 +505,6 @@ void CodeGen::ProcessOp(OpRec& o)
 		o.op = MULTIPLY;
 	else if (scan.tokenBuffer == "/")
 		o.op = DIVIDE;
-	else if (scan.tokenBuffer == "/")
-		o.op = DIVIDE;
 	else if (scan.tokenBuffer == ">")
 		o.op = GT;
 	else if (scan.tokenBuffer == ">=")
@@ -467,6 +531,9 @@ void CodeGen::InputVar(ExprRec & inVar)
 		t = (int)inVar.val*4;
 		GetSymbolValue(inVar,s,t);
 		Generate("RDF       ", s, "");
+	}else if(inVar.kind == SCRIBBLE_LITERAL_EXPR){
+		GetSymbolValue(inVar,s);
+		Generate("RDST       ", s, "");
 	}else{
 		GetSymbolValue(inVar,s);
 		if(inVar.kind == INT_LITERAL_EXPR)
@@ -562,8 +629,8 @@ void CodeGen::InitializeVar(ExprRec & exprRec)
 				exprRec.val = stof(scan.tokenBuffer);
 			}
 			else{
-				newExpr.val = 0;
 				exprRec.val = 0;
+				newExpr.val = 0;
 			}
 			CheckId(exprRec);
 			if(exprRec.kind == FLOAT_LITERAL_EXPR)
@@ -677,7 +744,19 @@ void CodeGen::SetCondition(ExprRec& leftHandSide, ExprRec& rightHandSide)
 		Generate("FLT       ", "R2", s);
 		Generate("FC        ", "R0", "R2");
 	}
+
+	if(leftHandSide.kind == SCRIBBLE_LITERAL_EXPR || rightHandSide.kind == SCRIBBLE_LITERAL_EXPR)
+	{
+		StringCmprUsed = true;
+
+		GetSymbolValue(leftHandSide, s);
+		Generate("LD        ", "R4", s);
+		GetSymbolValue(rightHandSide, s);
+		Generate("LD        ", "R5", s);
+		Generate("JSR       ", "R7", "STRCMP");
+	}
 }
+
 void CodeGen::DoLoopBegin()
 {
 	int type = 3;
@@ -691,22 +770,22 @@ void CodeGen::DoLoopEnd(OpRec& op)
 	switch (op.op)
 	{
 		case GE:
-			Generate("JGE       ", "DOUT" + to_string(Stack.back()), "");
-			break;
-		case GT:
-			Generate("JGT       ", "DOUT" + to_string(Stack.back()), "");
-			break;
-		case LE:
-			Generate("JLE       ", "DOUT" + to_string(Stack.back()), "");
-			break;
-		case LT:
 			Generate("JLT       ", "DOUT" + to_string(Stack.back()), "");
 			break;
+		case GT:
+			Generate("JLE       ", "DOUT" + to_string(Stack.back()), "");
+			break;
+		case LE:
+			Generate("JGT       ", "DOUT" + to_string(Stack.back()), "");
+			break;
+		case LT:
+			Generate("JGE       ", "DOUT" + to_string(Stack.back()), "");
+			break;
 		case EQ:
-			Generate("JEQ       ", "DOUT" + to_string(Stack.back()), "");
+			Generate("JNE       ", "DOUT" + to_string(Stack.back()), "");
 			break;
 		case NE:
-			Generate("JNE       ", "DOUT" + to_string(Stack.back()), "");
+			Generate("JEQ       ", "DOUT" + to_string(Stack.back()), "");
 			break;
 		break;
 	}
@@ -744,7 +823,9 @@ void CodeGen::WhileBegin(OpRec& op)
 		case NE:
 			Generate("JEQ       ", "WHLEND" + to_string(Stack.back()), "");
 			break;
-		break;
+		default:
+			//Generate("OH SHIT","","");
+			break;
 	}
 
 }
