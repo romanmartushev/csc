@@ -205,7 +205,9 @@ Token Scanner::GetNextToken()
 			}
 			else if (sourceFile.peek() == '/') // // Integer division
 			{
+				BufferChar(currentChar);
 				currentChar = NextChar();
+				BufferChar(currentChar);
 				return INTEGERDIV_OP;
 			}
 			else { //Real division

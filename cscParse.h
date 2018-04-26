@@ -67,7 +67,7 @@ private:
 
 	void Factor(ExprRec& expr);
 
-	void RelOp();
+	void RelOp(OpRec& op);
 
 	void CondTail(ExprRec & expr, OpRec& op);
 
@@ -79,9 +79,7 @@ private:
 
 	void IntList(ExprRec & exprRec);
 
-	void ForAssign();
-
-	void ForAssign2();
+	void ForAssign(ExprRec& expr, ExprRec& expr2);
 
 	void ElseClause(OpRec& op);
 

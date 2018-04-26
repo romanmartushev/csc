@@ -40,7 +40,7 @@ Token Parser::NextToken()
 void Parser::Match(Token t)
 {
 	if (t != NextToken())
-		SyntaxError(t, "");
+		SyntaxError(t, "Token mismatch");
 	else
 		tokenAvailable = false;
 }
@@ -57,18 +57,19 @@ void Parser::ListType(ExprRec & exprRec)
 		IntList(exprRec);
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "List Type");
 	}
 }
 
 void Parser::InitValue(ExprRec& exprRec)
 {
+	ExprRec expr;
 	switch (NextToken())
 	{
 	case INT_LIT:
 	case FLOAT_LIT:
 	case SCRIBBLE_LIT:
-		Literal(exprRec);
+		Literal(expr);
 		code.ProcessLit(exprRec);
 		break;
 	case LSTAPLE:
@@ -77,7 +78,7 @@ void Parser::InitValue(ExprRec& exprRec)
 		Match(RSTAPLE);
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Init Value");
 	}
 }
 
@@ -98,7 +99,7 @@ void Parser::VarDecTail(ExprRec& exprRec)
 	case SEMICOLON:
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Var Dec Tail");
 	}
 }
 
@@ -114,7 +115,7 @@ void Parser::Init(ExprRec& exprRec)
 	case COMMA:
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Init");
 	}
 }
 
@@ -150,7 +151,7 @@ void Parser::DecTail()
 	case ID:
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Dec Tail");
 	}
 }
 
@@ -183,7 +184,7 @@ void Parser::SizeSpec(ExprRec& expr)
 	case COLON:
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Size Spec");
 	}
 }
 
@@ -214,7 +215,7 @@ void Parser::Type(ExprRec& exprRec)
 		ScribbleType(exprRec);
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Type");
 	}
 }
 
@@ -235,7 +236,7 @@ void Parser::Literal(ExprRec& expr)
 		expr.kind = SCRIBBLE_LITERAL_EXPR;
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Literal");
 	}
 }
 
@@ -253,7 +254,7 @@ void Parser::MultOp()
 		Match(INTEGERDIV_OP);
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Mult Op");
 	}
 }
 
@@ -290,7 +291,7 @@ void Parser::FactorTail(ExprRec& expr)
 	case NE_OP:
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Factor Tail");
 	}
 }
 
@@ -314,7 +315,7 @@ void Parser::Primary(ExprRec& expr)
 		Match(RBANANA);
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Primary");
 	}
 }
 
@@ -329,7 +330,7 @@ void Parser::AddOp()
 		Match(MINUS_OP);
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Add Op");
 	}
 }
 
@@ -362,7 +363,7 @@ void Parser::ExprTail(ExprRec& expr)
 	case NE_OP:
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Expr Tail");
 	}
 }
 
@@ -373,30 +374,36 @@ void Parser::Factor(ExprRec& expr)
 
 }
 
-void Parser::RelOp()
+void Parser::RelOp(OpRec& op)
 {
 	switch (NextToken())
 	{
 	case LT_OP:
 		Match(LT_OP);
+		op.op = LT;
 		break;
 	case LE_OP:
 		Match(LE_OP);
+		op.op = LE;
 		break;
 	case GT_OP:
 		Match(GT_OP);
+		op.op = GT;
 		break;
 	case GE_OP:
 		Match(GE_OP);
+		op.op = GE;
 		break;
 	case EQ_OP:
 		Match(EQ_OP);
+		op.op = EQ;
 		break;
 	case NE_OP:
 		Match(NE_OP);
+		op.op = NE;
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Rel Op");
 	}
 }
 
@@ -410,7 +417,7 @@ void Parser::CondTail(ExprRec & expr, OpRec& op)
 	case GE_OP:
 	case EQ_OP:
 	case NE_OP:
-		RelOp();
+		RelOp(op);
 		code.ProcessOp(op);
 		Expression(expr);
 		break;
@@ -418,7 +425,7 @@ void Parser::CondTail(ExprRec & expr, OpRec& op)
 	case SEMICOLON:
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Cond Tail");
 	}
 }
 
@@ -435,7 +442,7 @@ void Parser::FloatListTail(ExprRec & exprRec)
 	case RSTAPLE:
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Not a float lit");
 	}
 }
 void Parser::FloatList(ExprRec & exprRec)
@@ -458,7 +465,7 @@ void Parser::IntListTail(ExprRec & exprRec)
 	case RSTAPLE:
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Not an int lit");
 	}
 }
 
@@ -469,20 +476,15 @@ void Parser::IntList(ExprRec & exprRec)
 	IntListTail(exprRec);
 }
 
-void Parser::ForAssign()
+void Parser::ForAssign(ExprRec& expr, ExprRec& expr2)
 {
-	ExprRec expr;
+
 	Variable(expr);
 	Match(ASSIGN_OP);
-	Expression(expr);
-	//code.ForAssign(expr);
-
+	Expression(expr2);
+	code.ForAssign(expr, expr2);
 }
-void Parser::ForAssign2()
-{
-	ExprRec expr;
 
-}
 void Parser::ElseClause(OpRec& op)
 {
 	switch (NextToken())
@@ -495,7 +497,7 @@ void Parser::ElseClause(OpRec& op)
 	case ENDSTMT_SYM:
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Else Clause");
 	}
 }
 
@@ -504,26 +506,30 @@ void Parser::Condition(OpRec& op)
 	ExprRec leftHandSide, rightHandSide;
 
 	Expression(leftHandSide);
+
 	CondTail(rightHandSide, op);
+
 	code.SetCondition(leftHandSide, rightHandSide);
 }
+
 
 void Parser::ForStmt()
 {
 	OpRec op;
-
+	ExprRec expr, expr2;
 	Match(FOR_SYM);
 	Match(LBANANA);
-	ForAssign();
+	ForAssign(expr, expr2);
+	code.ForBegin();
 	Match(SEMICOLON);
 	Condition(op);
 	Match(SEMICOLON);
-	// code.ForUpdate();
-	ForAssign();
+	code.ForUpdate(op);
+	ForAssign(expr2, expr);
 	Match(RBANANA);
 	StmtList();
 	Match(ENDSTMT_SYM);
-	// code.ForEnd();
+	code.ForEnd();
 }
 
 void Parser::DoStmt()
@@ -537,7 +543,7 @@ void Parser::DoStmt()
 	Match(LBANANA);
 	Condition(op);
 	Match(RBANANA);
-  code.DoLoopEnd(op);
+  	code.DoLoopEnd(op);
 	Match(SEMICOLON);
 }
 
@@ -585,7 +591,7 @@ void Parser::ItemListTail()
 	case SEMICOLON:
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Item List Tail");
 	}
 }
 
@@ -624,7 +630,7 @@ void Parser::VariableTail(ExprRec & expr)
 	case NE_OP:
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Variable Tail");
 	}
 }
 
@@ -642,7 +648,7 @@ void Parser::VarListTail()
 	case SEMICOLON:
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Var List Tail");
 	}
 }
 
@@ -723,7 +729,7 @@ void Parser::StructStmt()
 		ForStmt();
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Struct Stmt");
 	}
 }
 
@@ -747,7 +753,7 @@ void Parser::SimpleStmt()
 		BreakStmt();
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Simple Stmt");
 	}
 }
 
@@ -773,7 +779,7 @@ void Parser::StmtTail()
 	case ENDSTMT_SYM:
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Stmt Tail");
 	}
 }
 
@@ -795,7 +801,7 @@ void Parser::Statement()
 		StructStmt();
 		break;
 	default:
-		SyntaxError(NextToken(), "");
+		SyntaxError(NextToken(), "Statement");
 	}
 }
 
