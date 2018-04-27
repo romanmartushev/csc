@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <math.h>
 using namespace std;
 
 extern ifstream sourceFile;
@@ -81,25 +82,25 @@ void CodeGen::Enter(const ExprRec & s)
 				symbol.stringValue = s.stringVal;
 			symbol.RelativeAddress = stringOffset;
 	    for(int i = 0; i < s.stringVal.length(); i++){
-        	if(s.stringVal[i] == ':'){
-				if(isdigit(s.stringVal[i+1]) && isdigit(s.stringVal[i+2]) && isdigit(s.stringVal[i+3])){
-					stringOffset = stringOffset - 3;
-				}
-				else if(s.stringVal[i+1] == ':'){
-					stringOffset = stringOffset;
-					i++;
-				}else{
-					stringOffset = stringOffset - 1;
+        if(s.stringVal[i] == ':'){
+					if(isdigit(s.stringVal[i+1]) && isdigit(s.stringVal[i+2]) && isdigit(s.stringVal[i+3])){
+						stringOffset = stringOffset - 3;
+					}
+					else if(s.stringVal[i+1] == ':'){
+						stringOffset = stringOffset;
+						i++;
+					}else{
+						stringOffset = stringOffset - 1;
+					}
 				}
 			}
-		}
-		if(s.size % 2 == 0){
-			stringOffset += s.size+1;
-		}
-		else{
-			stringOffset += s.size;
-		}
-		MakeEven(stringOffset);
+			if(s.size % 2 == 0){
+				stringOffset += s.size+1;
+			}
+			else{
+				stringOffset += s.size;
+			}
+			MakeEven(stringOffset);
 		break;
 	}
 	symbol.Name = s.name;
@@ -124,6 +125,8 @@ string CodeGen::ExtractOp(const OpRec & o)
 				return "IM        ";
 			case DIVIDE:
 				return "ID        ";
+			case INTDIV:
+				return "ID        ";
 		}
 	}else if (o.kind == FLOAT_LITERAL_EXPR){
 		switch(o.op)
@@ -135,6 +138,8 @@ string CodeGen::ExtractOp(const OpRec & o)
 			case MULTIPLY:
 				return "FM        ";
 			case DIVIDE:
+				return "FD        ";
+			case INTDIV:
 				return "FD        ";
 		}
 	}else{
@@ -409,6 +414,9 @@ void CodeGen::GenInfix(ExprRec & e1, OpRec & op, ExprRec & e2, ExprRec& e)
 		case DIVIDE:
 			e.val = e1.val/e2.val;
 			break;
+		case	INTDIV:
+			e.val = floor (e1.val/e2.val);
+			break;
 		case GE:
 		case GT:
 		case LE:
@@ -422,9 +430,7 @@ void CodeGen::GenInfix(ExprRec & e1, OpRec & op, ExprRec & e2, ExprRec& e)
 	{
 		e.name = GetTemp();
 		e.val = 0;
-		CheckId(e);
 		GetSymbolValue(e1,opnd);
-
 		if(e1.kind == FLOAT_LITERAL_EXPR || e2.kind == FLOAT_LITERAL_EXPR)
 			op.kind = FLOAT_LITERAL_EXPR;
 		else
@@ -432,9 +438,10 @@ void CodeGen::GenInfix(ExprRec & e1, OpRec & op, ExprRec & e2, ExprRec& e)
 
 		if(e1.name == "int" && (e1.kind == FLOAT_LITERAL_EXPR || e2.kind == FLOAT_LITERAL_EXPR))
 			Generate("FLT       ", "R0", opnd);
-		else
+		else{
 			Generate("LD        ", "R0", opnd);
 
+		}
 		GetSymbolValue(e2,opnd);
 
 		string operation = ExtractOp(op);
@@ -445,9 +452,18 @@ void CodeGen::GenInfix(ExprRec & e1, OpRec & op, ExprRec & e2, ExprRec& e)
 		}
 		else
 			Generate(operation, "R0", opnd);
-
-		GetSymbolValue(e,opnd);
-		Generate("STO       ", "R0", opnd);
+		if(op.op == INTDIV){
+			Generate("FIX       ", "R2", "R0");
+			e.name = "convertedInt";
+			e.kind = INT_LITERAL_EXPR;
+			CheckId(e);
+			GetSymbolValue(e,opnd);
+			Generate("STO       ", "R2", opnd);
+		}else{
+			CheckId(e);
+			GetSymbolValue(e,opnd);
+			Generate("STO       ", "R0", opnd);
+		}
 	}
 }
 
@@ -505,6 +521,8 @@ void CodeGen::ProcessOp(OpRec& o)
 		o.op = MULTIPLY;
 	else if (scan.tokenBuffer == "/")
 		o.op = DIVIDE;
+	else if (scan.tokenBuffer == "//")
+		o.op = INTDIV;
 	else if (scan.tokenBuffer == ">")
 		o.op = GT;
 	else if (scan.tokenBuffer == ">=")
@@ -564,12 +582,17 @@ void CodeGen::WriteExpr(ExprRec & outExpr)
 		Generate("WRF       ", s, "");
 	}else{
 		GetSymbolValue(outExpr,s);
-		if(outExpr.kind == INT_LITERAL_EXPR || outExpr.name == "int")
+		if(outExpr.kind == INT_LITERAL_EXPR && outExpr.name == "convertedInt")
 			Generate("WRI       ", s, "");
-		if(outExpr.kind == FLOAT_LITERAL_EXPR || outExpr.name == "float")
-			Generate("WRF       ", s, "");
-		if(outExpr.kind == SCRIBBLE_LITERAL_EXPR)
-			Generate("WRST      ", s, "");
+		else{
+			if(outExpr.kind == INT_LITERAL_EXPR || outExpr.name == "int")
+				Generate("WRI       ", s, "");
+			if(outExpr.kind == FLOAT_LITERAL_EXPR || outExpr.name == "float"){
+				Generate("WRF       ", s, "");
+			}
+			if(outExpr.kind == SCRIBBLE_LITERAL_EXPR)
+				Generate("WRST      ", s, "");
+		}
 	}
 }
 

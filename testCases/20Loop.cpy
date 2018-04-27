@@ -7,25 +7,25 @@
 
 	:O "Enter a positive integer upper limit for counting: ";
 	:I n;
-	:N:N
+	:N;:N;
 	k := 1;
 	:O "Forward: ";
-	do
+	:D
 		:O k;
-		:N
+		:N;
 		:? (k == n) :B; :.
 		k:= k + 1;
-	until (1==0);
-	:N:N
-	
+	:U (1==0);
+	:N;:N;
+
 	k := n;
 	:O "Backward: ";
-	do
+	:D
 		:O k;
-		:N
+		:N;
 		:? (k == 1) :B; :.
 		k := k - 1;
-	until (1==0);
+	:U (1==0);
 
-	:N:N
+	:N;:N;
 :Z
