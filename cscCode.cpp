@@ -76,8 +76,13 @@ void CodeGen::Enter(const ExprRec & s)
 		case SCRIBBLE_LITERAL_EXPR:
 			symbol.DataType = Scribble;
 			symbol.NumberOfComponents = s.size;
-			if(s.stringVal == "")
+			string temp;
+			if(s.stringVal == ""){
+				for(int i = 0; i < s.size; i++){
+					temp += " ";
+				}
 				symbol.stringValue = " ";
+			}
 			else
 				symbol.stringValue = s.stringVal;
 			symbol.RelativeAddress = stringOffset;
@@ -228,19 +233,25 @@ void CodeGen::Assign(ExprRec & target, ExprRec & source)
 		GetSymbolValue(target,s,t);
 		Generate("STO       ", "R0", s);
 	}else if(target.kind == SCRIBBLE_LITERAL_EXPR){
-		StringCpyUsed = true;
-
-		GetSymbolValue(target, s);
-		Generate("LD        ", "R0", s);
-		GetSymbolValue(source, s);
-		Generate("LD        ", "R1", s);
-		Generate("JSR       ", "R7", "STRCPY");
+		ScribbleAssign(target,source);
+		target = source;
 	}
 	else{
 		GetSymbolValue(source,s);
 		Generate("LD        ", "R0", s);
 		GetSymbolValue(target,s);
 		Generate("STO       ", "R0", s);
+	}
+}
+void CodeGen::ScribbleAssign(ExprRec & target, ExprRec & source){
+	for(int i = 0 ; i < symbolTable.size(); i++){
+		if(target.name == symbolTable[i].Name){
+				for(int j = 0 ; j < symbolTable.size(); j++){
+					if(source.name == symbolTable[j].Name){
+						symbolTable[i].RelativeAddress = symbolTable[j].RelativeAddress;
+					}
+				}
+		}
 	}
 }
 
@@ -277,32 +288,6 @@ void CodeGen::Finish()
 		Generate("IC        ", "R0", "R1");
 		Generate("JMP       ", "*R7", "");
 	}
-
-	if(StringCpyUsed)
-	{
-		Generate("LABEL     ", "STRCPY", "");
-		Generate("LD        ", "R0", "*R4");
-		Generate("SRZ       ", "R0", "8");
-
-		Generate("LD        ", "R1", "*R5");
-		Generate("SRZ       ", "R1", "8");
-
-		// Generate("IC        ", "R0", "#0");
-		// Generate("JEQ       ", "ENDCPY", "");
-		Generate("IC        ", "R1", "#0");
-		Generate("JEQ       ", "ENDCPY", "");
-		Generate("IC        ", "R0", "R1");
-		Generate("STO       ", "R0", "R1");
-		// Generate("IA        ", "R4", "#1");
-		// Generate("IA        ", "R5", "#1");
-		Generate("JMP       ", "STRCPY", "");
-		Generate("JMP       ", "*R7", "");
-
-		Generate("LABEL     ", "ENDCPY", "");
-		Generate("IC        ", "R0", "R1");
-		Generate("JMP       ", "*R7", "");
-	}
-
 	Generate("LABEL     ", "STRINGS", "");
 
 	for(int i = 0; i < symbolTable.size(); i++)
@@ -771,7 +756,6 @@ void CodeGen::SetCondition(ExprRec& leftHandSide, ExprRec& rightHandSide)
 	if(leftHandSide.kind == SCRIBBLE_LITERAL_EXPR || rightHandSide.kind == SCRIBBLE_LITERAL_EXPR)
 	{
 		StringCmprUsed = true;
-
 		GetSymbolValue(leftHandSide, s);
 		Generate("LD        ", "R4", s);
 		GetSymbolValue(rightHandSide, s);

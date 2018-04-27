@@ -59,6 +59,8 @@ public:
 	// sets the kind of incoming symbol to the previsouly declared type
 	// Returns the offset of a variable in the symbolTable
 
+	void ScribbleAssign(ExprRec & target, ExprRec & source);
+
 	void Assign(ExprRec & target, ExprRec & source);
 	// Produces the assembly code for an assignment from Source to Target.
 
