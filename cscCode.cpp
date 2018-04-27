@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <math.h>
 using namespace std;
 
 extern ifstream sourceFile;
@@ -123,6 +124,8 @@ string CodeGen::ExtractOp(const OpRec & o)
 			case MULTIPLY:
 				return "IM        ";
 			case DIVIDE:
+				return "ID        ";
+			case INTDIV:
 				return "ID        ";
 		}
 	}else if (o.kind == FLOAT_LITERAL_EXPR){
@@ -427,9 +430,7 @@ void CodeGen::GenInfix(ExprRec & e1, OpRec & op, ExprRec & e2, ExprRec& e)
 	{
 		e.name = GetTemp();
 		e.val = 0;
-		CheckId(e);
 		GetSymbolValue(e1,opnd);
-
 		if(e1.kind == FLOAT_LITERAL_EXPR || e2.kind == FLOAT_LITERAL_EXPR)
 			op.kind = FLOAT_LITERAL_EXPR;
 		else
@@ -451,18 +452,15 @@ void CodeGen::GenInfix(ExprRec & e1, OpRec & op, ExprRec & e2, ExprRec& e)
 		}
 		else
 			Generate(operation, "R0", opnd);
-
-
-
 		if(op.op == INTDIV){
-			std::cout << opnd << '\n';
 			Generate("FIX       ", "R2", "R0");
-
 			e.name = "convertedInt";
 			e.kind = INT_LITERAL_EXPR;
+			CheckId(e);
 			GetSymbolValue(e,opnd);
 			Generate("STO       ", "R2", opnd);
 		}else{
+			CheckId(e);
 			GetSymbolValue(e,opnd);
 			Generate("STO       ", "R0", opnd);
 		}
